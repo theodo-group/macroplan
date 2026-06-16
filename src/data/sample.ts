@@ -4,7 +4,7 @@
 export const SAMPLE_PLAN = `title = "Q3 — Checkout revamp"
 
 # A Feature: start week, Original Estimate (the immovable baseline), then any
-# Re-estimates (slips), an optional Delivery, and an optional Learning / Status.
+# Re-estimates, an optional Delivery, and an optional Learning / Status.
 # Dates are TOML date literals; any day is snapped to that week's Monday.
 
 [[feature]]
@@ -18,7 +18,7 @@ learning = "Spiking the OAuth flow first paid off — do discovery spikes earlie
 name = "Payments"
 start = 2026-06-01
 original = 2026-06-15           # ◯ baseline
-reestimates = [2026-06-29, 2026-07-13]   # two slips → △ △
+reestimates = [2026-06-29, 2026-07-13]   # two re-estimates → △ △
 delivered = 2026-07-20          # after the baseline → ▲ late
 learning = "Vendor lead time was the real constraint — derisk vendors up front."
 
@@ -33,7 +33,7 @@ note = "No recovery plan yet — needs an owner."
 name = "Search"
 start = 2026-06-08
 original = 2026-06-22
-reestimates = [2026-07-06]      # slipped once, still in flight → △
+reestimates = [2026-07-06]      # re-estimated once, still in flight → △
 status = "orange"
 note = "Third-party search API is flaky; spike a fallback."
 
