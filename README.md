@@ -1,0 +1,38 @@
+# Macroplan
+
+A week-granular, **learning-oriented** view of the features a team has committed to deliver — a simpler cousin of a Gantt chart whose point is not just scheduling but learning from *how our estimates held up over time*.
+
+Each feature reads left-to-right as a story: where it started, what we first promised, every time it slipped, and when it actually shipped — judged honestly against the **first** estimate, never a moved goalpost.
+
+```
+        Jun02  Jun09  Jun16  Jun23  Jun30  Jul07  Jul14
+Auth     ┣━━━━━━◉                                          🟢
+Payments ┣━━━━━━◯━━━━━△━━━━━△━━━━━▲                        🟠  vendor slipped
+Dashboard              ┣━━━━━◯                             🔴  no recovery plan
+                                    │ MVP go-live
+                                    now
+```
+
+**Symbols:** `┣` start · `━` continuation · `◯` original estimate (unmet) · `◉` delivered on time · `△` re-estimate (slip) · `▲` delivered late.
+
+## Status
+
+Design is complete; **no code exists yet**. The next step is a thin vertical slice (TOML parse → Plan model → render one feature row).
+
+## How it will work
+
+- Author a plan as **TOML** in an in-app split editor (re-rendered on every keystroke).
+- The view is a **CSS-Grid** week × feature layout with the symbol vocabulary, real status colors (🟢/🟠/🔴 with hover notes), a "now" line, sticky feature-name and week-axis panes, and a trailing **Learning** column.
+- On-time vs. late is **derived** by the app against the Original Estimate — you never type "late".
+- **Milestones** are vertical lines tied to an explicit list of required features.
+- Keep a **library** of plans in localStorage; **export a PNG** to share into Slack or a deck.
+- Stack: Vite + Vue 3 + DaisyUI · `smol-toml` (parse) · `html-to-image` (export). Static SPA, no backend.
+
+## Documentation
+
+| Document | What it covers |
+|----------|----------------|
+| [CONTEXT.md](CONTEXT.md) | **Ubiquitous language** — the glossary: Macroplan, Feature, Original Estimate, Re-estimate, Delivery, Milestone, Week, Now line, Learning, Status, and the symbol legend |
+| [DESIGN.md](DESIGN.md) | **Goal-driven design (QFD)** — goals, functions, the Goal→Function→How→Component cascade, the House/Roof matrices + rendered House of Quality, critical performance budget, trade-offs, and watched tensions |
+| [docs/adr/0001-original-estimate-as-baseline.md](docs/adr/0001-original-estimate-as-baseline.md) | Why on-time/late is judged against the **Original Estimate**, never a re-estimate |
+| [docs/adr/0002-local-first-no-backend.md](docs/adr/0002-local-first-no-backend.md) | Why the app is **local-first with no backend**, and TOML is the portable source of truth |
