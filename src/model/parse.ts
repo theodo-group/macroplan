@@ -26,6 +26,8 @@ export function parseMacroplan(source: string): RawPlan {
 
   return {
     title: data.title != null ? String(data.title) : 'Untitled Macroplan',
+    start: data.start != null ? toYmdOr('plan', 'start', data.start) : undefined,
+    end: data.end != null ? toYmdOr('plan', 'end', data.end) : undefined,
     features,
     milestones,
   }

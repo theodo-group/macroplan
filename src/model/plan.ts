@@ -25,7 +25,11 @@ export function buildPlan(raw: RawPlan, today: Date | string = new Date()): Plan
   })
 
   // Range: earliest start to last marker/milestone (CONTEXT.md). Empty weeks drawn.
+  // Optional authored `start`/`end` widen this span with lead-in / trailing weeks;
+  // they only ever extend it — a Feature or marker outside them is never clipped.
   const allWeeks: WeekId[] = []
+  if (raw.start != null) allWeeks.push(mondayOf(raw.start))
+  if (raw.end != null) allWeeks.push(mondayOf(raw.end))
   for (const r of rows) {
     allWeeks.push(r.startWeek, r.barEndWeek)
     for (const mk of r.markers) allWeeks.push(mk.week)
