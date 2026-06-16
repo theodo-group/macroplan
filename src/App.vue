@@ -21,7 +21,7 @@ const { source, plan, error, resetToSample } = useMacroplan()
 
     <main class="flex min-h-0 flex-1 flex-col md:flex-row">
       <section
-        class="flex min-h-0 flex-col border-base-300 max-md:h-2/5 max-md:border-b md:w-2/5 md:max-w-xl md:border-r"
+        class="flex min-h-0 flex-col border-base-300 max-md:h-2/5 max-md:border-b md:w-1/3 md:max-w-md md:border-r"
       >
         <div class="px-4 py-2 text-xs font-semibold uppercase tracking-wide text-base-content/50">
           Source (TOML)
