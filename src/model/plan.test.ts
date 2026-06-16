@@ -144,6 +144,6 @@ describe('parse validation', () => {
   it('parses the bundled sample without error', () => {
     const raw = parseMacroplan(SAMPLE_PLAN)
     expect(raw.features).toHaveLength(5)
-    expect(raw.milestones).toHaveLength(1)
+    expect(raw.milestones).toHaveLength(3)
   })
 })
