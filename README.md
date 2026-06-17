@@ -17,9 +17,7 @@ Dashboard              ┣━━━━━◯                             🔴  n
 
 ## Status
 
-**Feature-complete** against the [design](DESIGN.md) and covered by tests — TOML authoring with live reload, the full week × feature grid render, derived on-time/late classification, milestones, and PNG export all work client-side.
-
-Not yet built: a **library** of multiple named plans. Today a single source autosaves to localStorage.
+**Feature-complete** against the [design](DESIGN.md) and covered by tests — TOML authoring with live reload, a **library** of named plans, the full week × feature grid render, derived on-time/late classification, milestones, and PNG + `.toml` export all work client-side.
 
 ## How it works
 
@@ -27,7 +25,7 @@ Not yet built: a **library** of multiple named plans. Today a single source auto
 - The view is a **CSS-Grid** week × feature layout with the symbol vocabulary, real status colors (🟢/🟠/🔴 with hover notes), a "now" line, sticky feature-name and week-axis panes, and a trailing **Learning** column.
 - On-time vs. late is **derived** by the app against the Original Estimate — you never type "late".
 - **Milestones** are vertical lines tied to an explicit list of required features.
-- Your source **autosaves to localStorage**; **export a PNG** to share into Slack or a deck.
+- Keep a **library** of named plans in localStorage and switch between them; **export** any plan as a `.toml` file, or the rendered view as a **PNG** to share into Slack or a deck.
 - Stack: Vite + Vue 3 + DaisyUI · `smol-toml` (parse) · `html-to-image` (export). Static SPA, no backend.
 
 ## Documentation

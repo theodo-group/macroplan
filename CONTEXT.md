@@ -44,6 +44,10 @@ _Avoid_: column, period, sprint
 A vertical line marking the current week across the whole plan — the at-a-glance "where are we right now".
 _Avoid_: today marker, cursor
 
+**Library**:
+The collection of saved **Macroplans** held in the browser's localStorage — the live store. Always holds at least one Macroplan; durability rests on exporting a Macroplan's `.toml` (per ADR-0002), not on the Library itself. Carries no status of its own.
+_Avoid_: workspace, project, file list
+
 ## Symbols
 
 - `┣` start of a Feature's bar
@@ -56,6 +60,7 @@ _Avoid_: today marker, cursor
 ## Relationships
 
 - A **Macroplan** contains a flat, author-ordered list of **Features** (typically ordered by start **Week**) and many **Milestones**. There is no grouping/workstream concept.
+- The **Library** holds many **Macroplans**, exactly one of which is active (shown in the editor and grid). Each is identified internally by a stable id and labelled by its **title**.
 - A **Feature** has exactly one **Original Estimate**, zero or more **Re-estimates**, at most one **Delivery**, and at most one **Learning**.
 - A **Milestone** explicitly names the **Features** required by it; a Feature may be required by zero, one, or several Milestones, and a Feature may be in the plan without belonging to any Milestone.
 - On-time vs. late is judged against the **Original Estimate**, never a **Re-estimate**.
