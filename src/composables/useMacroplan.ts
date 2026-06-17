@@ -119,8 +119,9 @@ export function useMacroplan() {
   // Persist the whole library on any change (best-effort, like the old autosave).
   watch(lib, (l) => save(l), { deep: true })
 
-  // Switching plans drops the prior render so a broken target shows its own
-  // error/empty state, not the previous plan's grid.
+  // Reset last-good to the target plan's current parse (null if it's broken),
+  // so switching to a broken plan shows its own error/empty state rather than
+  // the previous plan's grid.
   function switchTo(id: string): void {
     lib.value.activeId = id
     lastGood.value = parsed.value.plan
