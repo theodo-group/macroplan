@@ -57,7 +57,12 @@ function confirmDelete() {
       >
         Download
       </button>
-      <button class="btn btn-ghost btn-sm" title="Delete this plan" @click="confirmingDelete = true">
+      <button
+        class="btn btn-ghost btn-sm"
+        :disabled="busy"
+        title="Delete this plan"
+        @click="confirmingDelete = true"
+      >
         🗑
       </button>
     </header>
