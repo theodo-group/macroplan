@@ -1,4 +1,5 @@
 import { ref, shallowRef, computed, watch } from 'vue'
+import * as v from 'valibot'
 import { parseMacroplan } from '../model/parse'
 import { buildPlan } from '../model/plan'
 import type { Plan } from '../model/types'
@@ -7,17 +8,19 @@ import { SAMPLE_PLAN } from '../data/sample'
 const STORAGE_KEY = 'macroplan:library'
 const LEGACY_KEY = 'macroplan:source'
 
-export interface StoredPlan {
-  id: string
-  name: string
-  source: string
-}
+const StoredPlanSchema = v.object({
+  id: v.string(),
+  name: v.string(),
+  source: v.string(),
+})
+export type StoredPlan = v.InferOutput<typeof StoredPlanSchema>
 
-interface Library {
-  version: 1
-  activeId: string
-  plans: StoredPlan[]
-}
+const LibrarySchema = v.object({
+  version: v.literal(1),
+  activeId: v.string(),
+  plans: v.array(StoredPlanSchema),
+})
+type Library = v.InferOutput<typeof LibrarySchema>
 
 /** The source's title if it fully parses, else null (so the cached name only
  *  ever updates on a valid parse). */
@@ -50,8 +53,9 @@ function loadLibrary(): Library {
   const raw = localStorage.getItem(STORAGE_KEY)
   if (raw) {
     try {
-      const lib = JSON.parse(raw) as Library
-      if (lib && Array.isArray(lib.plans) && lib.plans.length > 0) {
+      const parsed = v.safeParse(LibrarySchema, JSON.parse(raw))
+      if (parsed.success && parsed.output.plans.length > 0) {
+        const lib = parsed.output
         if (!lib.plans.some((p) => p.id === lib.activeId)) lib.activeId = lib.plans[0].id
         result = { version: 1, activeId: lib.activeId, plans: lib.plans }
       }
@@ -137,7 +141,11 @@ export function useMacroplan() {
       if (lib.value.plans.some((p) => p.id === id)) switchTo(id)
     },
     newPlan: () => {
-      const p = newStoredPlan(SAMPLE_PLAN)
+      // A new plan starts blank. The bundled sample is reserved for a genuinely
+      // empty library — first run (loadLibrary) or deleting the last plan
+      // (deletePlan) — and the ≥1-plan invariant keeps the library non-empty
+      // here, so "+ New" never re-clones the sample over an existing library.
+      const p = newStoredPlan('')
       lib.value.plans.push(p)
       switchTo(p.id)
     },

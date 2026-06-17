@@ -15,7 +15,7 @@ This adds the library: keep several named Macroplans, switch between them, creat
 **In:**
 - Multiple named Macroplans persisted in localStorage.
 - A header dropdown to switch the active plan.
-- Create a new plan (seeded from the bundled sample).
+- Create a new plan (a blank page; the bundled sample only seeds a genuinely empty library).
 - Delete the active plan (with a confirm).
 - Download the active plan's source as `<title-slug>.toml`.
 - Migration from the legacy single-key store.
@@ -83,11 +83,11 @@ Exposes:
 | `error` | `ComputedRef<string \| null>` | Active plan's current parse error. |
 | `plans` | `ComputedRef<{ id, name }[]>` | For the switcher. |
 | `activeId` | `Ref<string>` | Current selection. |
-| `newPlan()` | → `void` | Append a sample-seeded plan and switch to it. |
+| `newPlan()` | → `void` | Append a **blank** plan and switch to it. The sample is reserved for a genuinely empty library (first run / delete-the-last), which the ≥1-plan invariant means `newPlan` never sees. |
 | `deletePlan(id)` | → `void` | Remove; if it was active, re-point `activeId` to the **preceding** plan in the list (or the new first plan if it was at index 0); if it was the last remaining plan, seed a fresh sample (the invariant). |
 | `selectPlan(id)` | → `void` | Switch the active plan and **reset `lastGood`** so a broken target never shows the previous plan's render. |
 
-`resetToSample` is **removed** — `newPlan()` (seeded from the sample) replaces it.
+`resetToSample` is **removed** — `newPlan()` (a blank page) replaces it.
 
 ### `PlanSwitcher.vue` (new) — presentational
 
@@ -118,7 +118,7 @@ edit TOML ─► source (active plan) ─► autosave whole library ─► local
                        └─► parse ─► plan/error ─► refresh active plan's cached name (on valid title)
 
 switch ─► selectPlan(id) ─► activeId changes ─► source rebinds, lastGood reset ─► re-parse ─► render
-new    ─► newPlan() ─► append sample plan ─► selectPlan(newId)
+new    ─► newPlan() ─► append blank plan ─► selectPlan(newId)
 delete ─► confirm ─► deletePlan(activeId) ─► re-point active to preceding plan (or re-seed if last) ─► render
 toml   ─► downloadSource(source, sourceFilename(title)) ─► browser download
 ```
@@ -136,7 +136,7 @@ toml   ─► downloadSource(source, sourceFilename(title)) ─► browser downl
 - No storage → library seeds one sample plan, active.
 - Legacy `macroplan:source` present → migrates to a one-plan library (name = parsed title), legacy key removed.
 - Corrupt `macroplan:library` → seeds fresh sample (no throw).
-- `newPlan()` appends a sample plan and makes it active.
+- `newPlan()` appends a **blank** plan and makes it active (the sample only seeds an empty library).
 - `deletePlan(active)` removes it and re-points `activeId` to a remaining plan.
 - `deletePlan` of the **last** plan re-seeds a fresh sample (invariant holds).
 - Editing `source` updates the active entry and refreshes its cached `name` on a valid title; a broken edit keeps the last-good `name` and render.

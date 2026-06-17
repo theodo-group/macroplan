@@ -34,6 +34,18 @@ describe('useMacroplan — load & migration', () => {
     expect(m.source.value).toBe(SAMPLE_PLAN)
   })
 
+  it('falls back to a fresh sample when the stored library shape is malformed', () => {
+    // Valid JSON, wrong shape: a plan missing its `source` — would have slipped
+    // through the old blind `as Library` cast.
+    localStorage.setItem(
+      LIB_KEY,
+      JSON.stringify({ version: 1, activeId: 'x', plans: [{ id: 'x', name: 'Bad' }] }),
+    )
+    const m = useMacroplan()
+    expect(m.plans.value).toHaveLength(1)
+    expect(m.source.value).toBe(SAMPLE_PLAN)
+  })
+
   it('repairs a stale activeId instead of discarding the stored plans', () => {
     localStorage.setItem(
       LIB_KEY,
@@ -70,13 +82,13 @@ describe('useMacroplan — active plan binding', () => {
 })
 
 describe('useMacroplan — CRUD', () => {
-  it('newPlan appends a sample plan and activates it', () => {
+  it('newPlan appends a blank plan and activates it (the sample only seeds an empty library)', () => {
     const m = useMacroplan()
     const firstId = m.activeId.value
     m.newPlan()
     expect(m.plans.value).toHaveLength(2)
     expect(m.activeId.value).not.toBe(firstId)
-    expect(m.source.value).toBe(SAMPLE_PLAN)
+    expect(m.source.value).toBe('') // blank page, not a copy of the sample
   })
 
   it('deletePlan removes the active plan and re-points to the preceding one', () => {
