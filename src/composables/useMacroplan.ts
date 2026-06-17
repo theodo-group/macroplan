@@ -153,9 +153,5 @@ export function useMacroplan() {
         switchTo(lib.value.plans[Math.max(0, idx - 1)].id)
       }
     },
-    // TODO(task 4): remove once App.vue drops the "Reset to sample" button.
-    resetToSample: () => {
-      source.value = SAMPLE_PLAN
-    },
   }
 }

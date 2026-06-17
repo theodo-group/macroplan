@@ -1,14 +1,30 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useMacroplan } from './composables/useMacroplan'
 import { usePngExport, exportFilename } from './composables/usePngExport'
+import { sourceFilename, downloadSource } from './composables/useSourceExport'
 import PlanEditor from './components/PlanEditor.vue'
 import MacroplanGrid from './components/MacroplanGrid.vue'
+import PlanSwitcher from './components/PlanSwitcher.vue'
 
-const { source, plan, error, resetToSample } = useMacroplan()
+const { source, plan, error, plans, activeId, selectPlan, newPlan, deletePlan } = useMacroplan()
 const { busy, toast, copyPng, downloadPng } = usePngExport()
 
 const exportRoot = ref<HTMLElement>()
+const confirmingDelete = ref(false)
+
+const activeName = computed(
+  () => plans.value.find((p) => p.id === activeId.value)?.name ?? 'Untitled',
+)
+
+function downloadToml() {
+  downloadSource(source.value, sourceFilename(plan.value?.title ?? activeName.value))
+}
+
+function confirmDelete() {
+  deletePlan(activeId.value)
+  confirmingDelete.value = false
+}
 </script>
 
 <template>
@@ -16,10 +32,13 @@ const exportRoot = ref<HTMLElement>()
     <header class="navbar min-h-0 gap-2 border-b border-base-300 bg-base-100 px-4 py-2">
       <img src="/favicon.svg" alt="" class="size-6" />
       <div class="flex-1">
-        <h1 class="text-lg font-semibold leading-tight">Macroplan</h1>
-        <p class="text-xs text-base-content/60 leading-tight">
-          A week-granular, learning-oriented record of what we committed to deliver.
-        </p>
+        <PlanSwitcher
+          :plans="plans"
+          :active-id="activeId"
+          @select="selectPlan"
+          @new="newPlan"
+          @download="downloadToml"
+        />
       </div>
       <button
         class="btn btn-ghost btn-sm"
@@ -38,7 +57,9 @@ const exportRoot = ref<HTMLElement>()
       >
         Download
       </button>
-      <button class="btn btn-ghost btn-sm" @click="resetToSample">Reset to sample</button>
+      <button class="btn btn-ghost btn-sm" title="Delete this plan" @click="confirmingDelete = true">
+        🗑
+      </button>
     </header>
 
     <main class="flex min-h-0 flex-1 flex-col md:flex-row">
@@ -61,6 +82,22 @@ const exportRoot = ref<HTMLElement>()
         </p>
       </section>
     </main>
+
+    <dialog class="modal" :class="{ 'modal-open': confirmingDelete }">
+      <div class="modal-box">
+        <h3 class="text-base font-semibold">Delete "{{ activeName }}"?</h3>
+        <p class="py-2 text-sm text-base-content/70">
+          This removes the plan from your library. Download its .toml first if you want to keep it.
+        </p>
+        <div class="modal-action">
+          <button class="btn btn-sm" @click="confirmingDelete = false">Cancel</button>
+          <button class="btn btn-sm btn-error" @click="confirmDelete">Delete</button>
+        </div>
+      </div>
+      <form method="dialog" class="modal-backdrop" @click="confirmingDelete = false">
+        <button>close</button>
+      </form>
+    </dialog>
 
     <div v-if="toast" class="toast toast-end">
       <div class="alert" :class="toast.kind === 'ok' ? 'alert-success' : 'alert-error'">
