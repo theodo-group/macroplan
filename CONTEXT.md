@@ -1,11 +1,11 @@
 # Macroplan
 
-A **Macroplan** is a week-granular view of the features we've committed to deliver — a simpler cousin of a Gantt chart whose purpose is not just scheduling but *learning* from how our estimates held up over time.
+A **Macroplan** is a week-by-week plan that keeps the receipts: what we promised to deliver, when it actually landed, and what the gap taught us — a simpler cousin of a Gantt chart whose purpose is not just scheduling but *learning*.
 
 ## Language
 
 **Macroplan**:
-A week-granular plan of the **Features** we've committed to deliver, read as a record of how estimates held against reality.
+A week-by-week plan that keeps the receipts on the **Features** we promised: when each actually landed, and what the gap taught us.
 _Avoid_: Gantt, roadmap, timeline
 
 **Feature**:

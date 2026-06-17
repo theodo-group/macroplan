@@ -1,6 +1,6 @@
 # Macroplan
 
-A week-granular, **learning-oriented** view of the features a team has committed to deliver — a simpler cousin of a Gantt chart whose point is not just scheduling but learning from *how our estimates held up over time*.
+A week-by-week plan that keeps the receipts on what a team promised to deliver — a simpler cousin of a Gantt chart whose point is not just scheduling but learning from *how our estimates held up over time*.
 
 Each feature reads left-to-right as a story: where it started, what we first promised, every time it slipped, and when it actually shipped — judged honestly against the **first** estimate, never a moved goalpost.
 
