@@ -2,14 +2,18 @@ import { ref } from 'vue'
 
 type Toast = { kind: 'ok' | 'err'; text: string } | null
 
-/** Slugified, stable download name derived from the plan title. */
-export function exportFilename(title: string): string {
-  const slug = title
+/** Lowercase, dash-collapsed slug of a plan title — no extension, no fallback. */
+export function slugify(title: string): string {
+  return title
     .toLowerCase()
     .trim()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '')
-  return `macroplan-${slug || 'plan'}.png`
+}
+
+/** Slugified, stable download name derived from the plan title. */
+export function exportFilename(title: string): string {
+  return `macroplan-${slugify(title) || 'plan'}.png`
 }
 
 /**
