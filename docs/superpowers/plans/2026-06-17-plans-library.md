@@ -29,12 +29,14 @@
 Extract a reusable `slugify` from the PNG exporter and add a `.toml` filename + download utility. Foundational and dependency-free.
 
 **Files:**
+
 - Modify: `src/composables/usePngExport.ts` (extract `slugify`, keep `exportFilename` output identical)
 - Create: `src/composables/useSourceExport.ts`
 - Test: `src/composables/useSourceExport.test.ts`
 - (Unchanged, must still pass: `src/composables/usePngExport.test.ts`)
 
 **Interfaces:**
+
 - Produces: `slugify(title: string): string` (exported from `usePngExport.ts`) — lowercased, non-alphanumerics collapsed to dashes, edge dashes trimmed, **no** extension and **no** `plan` fallback.
 - Produces: `sourceFilename(title: string): string` → `macroplan-<slug-or-plan>.toml`
 - Produces: `downloadSource(source: string, filename: string): void`
@@ -44,17 +46,17 @@ Extract a reusable `slugify` from the PNG exporter and add a `.toml` filename + 
 Create `src/composables/useSourceExport.test.ts`:
 
 ```ts
-import { describe, it, expect } from 'vitest'
-import { sourceFilename } from './useSourceExport'
+import { describe, it, expect } from "vitest"
+import { sourceFilename } from "./useSourceExport"
 
-describe('sourceFilename', () => {
-  it('slugifies the plan title into a .toml name', () => {
-    expect(sourceFilename('Q3 — Checkout revamp')).toBe('macroplan-q3-checkout-revamp.toml')
+describe("sourceFilename", () => {
+  it("slugifies the plan title into a .toml name", () => {
+    expect(sourceFilename("Q3 — Checkout revamp")).toBe("macroplan-q3-checkout-revamp.toml")
   })
 
-  it('falls back to a generic name when the title has no usable characters', () => {
-    expect(sourceFilename('')).toBe('macroplan-plan.toml')
-    expect(sourceFilename('—— ··')).toBe('macroplan-plan.toml')
+  it("falls back to a generic name when the title has no usable characters", () => {
+    expect(sourceFilename("")).toBe("macroplan-plan.toml")
+    expect(sourceFilename("—— ··")).toBe("macroplan-plan.toml")
   })
 })
 ```
@@ -74,31 +76,31 @@ export function slugify(title: string): string {
   return title
     .toLowerCase()
     .trim()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
 }
 
 /** Slugified, stable download name derived from the plan title. */
 export function exportFilename(title: string): string {
-  return `macroplan-${slugify(title) || 'plan'}.png`
+  return `macroplan-${slugify(title) || "plan"}.png`
 }
 ```
 
 - [ ] **Step 4: Create `useSourceExport.ts`**
 
 ```ts
-import { slugify } from './usePngExport'
+import { slugify } from "./usePngExport"
 
 /** Slugified, stable download name for a plan's TOML source. */
 export function sourceFilename(title: string): string {
-  return `macroplan-${slugify(title) || 'plan'}.toml`
+  return `macroplan-${slugify(title) || "plan"}.toml`
 }
 
 /** Download a plan's TOML source as a .toml file (client-side, no backend). */
 export function downloadSource(source: string, filename: string): void {
-  const blob = new Blob([source], { type: 'text/plain;charset=utf-8' })
+  const blob = new Blob([source], { type: "text/plain;charset=utf-8" })
   const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
+  const a = document.createElement("a")
   a.href = url
   a.download = filename
   a.click()
@@ -125,10 +127,12 @@ git commit -m "feat(export): add .toml source download and shared slugify helper
 A header dropdown that lists plans, marks the active one, and emits switch / new / download intents. No storage or parsing logic — props in, events out.
 
 **Files:**
+
 - Create: `src/components/PlanSwitcher.vue`
 - Test: `src/components/PlanSwitcher.test.ts`
 
 **Interfaces:**
+
 - Consumes: nothing from other tasks.
 - Produces: component `PlanSwitcher` with
   - Props: `plans: { id: string; name: string }[]`, `activeId: string`
@@ -141,36 +145,36 @@ Create `src/components/PlanSwitcher.test.ts`:
 
 ```ts
 // @vitest-environment happy-dom
-import { describe, it, expect } from 'vitest'
-import { mount } from '@vue/test-utils'
-import PlanSwitcher from './PlanSwitcher.vue'
+import { describe, it, expect } from "vitest"
+import { mount } from "@vue/test-utils"
+import PlanSwitcher from "./PlanSwitcher.vue"
 
 const plans = [
-  { id: 'a', name: 'Alpha' },
-  { id: 'b', name: 'Bravo' },
+  { id: "a", name: "Alpha" },
+  { id: "b", name: "Bravo" },
 ]
 
-describe('PlanSwitcher', () => {
-  it('lists plan names and marks the active one', () => {
-    const w = mount(PlanSwitcher, { props: { plans, activeId: 'b' } })
-    expect(w.text()).toContain('Alpha')
-    expect(w.text()).toContain('Bravo')
-    expect(w.find('a.active').text()).toContain('Bravo')
+describe("PlanSwitcher", () => {
+  it("lists plan names and marks the active one", () => {
+    const w = mount(PlanSwitcher, { props: { plans, activeId: "b" } })
+    expect(w.text()).toContain("Alpha")
+    expect(w.text()).toContain("Bravo")
+    expect(w.find("a.active").text()).toContain("Bravo")
   })
 
-  it('emits select with the clicked plan id', async () => {
-    const w = mount(PlanSwitcher, { props: { plans, activeId: 'a' } })
-    await w.findAll('li a')[1].trigger('click') // Bravo
-    expect(w.emitted('select')?.[0]).toEqual(['b'])
+  it("emits select with the clicked plan id", async () => {
+    const w = mount(PlanSwitcher, { props: { plans, activeId: "a" } })
+    await w.findAll("li a")[1].trigger("click") // Bravo
+    expect(w.emitted("select")?.[0]).toEqual(["b"])
   })
 
-  it('emits new and download (with the active id) from the trailing actions', async () => {
-    const w = mount(PlanSwitcher, { props: { plans, activeId: 'a' } })
-    const actions = w.findAll('li a')
-    await actions[actions.length - 2].trigger('click') // New plan
-    await actions[actions.length - 1].trigger('click') // Download .toml
-    expect(w.emitted('new')).toBeTruthy()
-    expect(w.emitted('download')?.[0]).toEqual(['a'])
+  it("emits new and download (with the active id) from the trailing actions", async () => {
+    const w = mount(PlanSwitcher, { props: { plans, activeId: "a" } })
+    const actions = w.findAll("li a")
+    await actions[actions.length - 2].trigger("click") // New plan
+    await actions[actions.length - 1].trigger("click") // Download .toml
+    expect(w.emitted("new")).toBeTruthy()
+    expect(w.emitted("download")?.[0]).toEqual(["a"])
   })
 })
 ```
@@ -184,7 +188,7 @@ Expected: FAIL — cannot resolve `./PlanSwitcher.vue`.
 
 ```vue
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed } from "vue"
 
 const props = defineProps<{
   plans: { id: string; name: string }[]
@@ -198,7 +202,7 @@ const emit = defineEmits<{
 }>()
 
 const activeName = computed(
-  () => props.plans.find((p) => p.id === props.activeId)?.name ?? 'Untitled',
+  () => props.plans.find((p) => p.id === props.activeId)?.name ?? "Untitled",
 )
 </script>
 
@@ -245,10 +249,12 @@ git commit -m "feat(ui): add the plan switcher dropdown"
 Turn the single-source composable into the Library owner: storage + migration + active-plan binding + autosave, plus the switch/create/delete operations. Keep `resetToSample` exported for now so `App.vue` still compiles — Task 4 removes it.
 
 **Files:**
+
 - Modify (rewrite): `src/composables/useMacroplan.ts`
 - Test: `src/composables/useMacroplan.test.ts`
 
 **Interfaces:**
+
 - Consumes: `parseMacroplan` (throws `PlanParseError`; defaults `title` to `'Untitled Macroplan'`), `buildPlan`, `SAMPLE_PLAN` (its title is `"Q3 — Checkout revamp"`).
 - Produces (the composable's return shape, relied on by Task 4):
   - `source: WritableComputedRef<string>` — reads/writes the active plan's source
@@ -259,7 +265,7 @@ Turn the single-source composable into the Library owner: storage + migration + 
   - `selectPlan(id: string): void`
   - `newPlan(): void`
   - `deletePlan(id: string): void`
-  - `resetToSample(): void` *(temporary — removed in Task 4)*
+  - `resetToSample(): void` _(temporary — removed in Task 4)_
 
 - [ ] **Step 1: Write the failing tests (storage, binding, CRUD)**
 
@@ -267,18 +273,18 @@ Create `src/composables/useMacroplan.test.ts`:
 
 ```ts
 // @vitest-environment happy-dom
-import { describe, it, expect, beforeEach } from 'vitest'
-import { nextTick } from 'vue'
-import { useMacroplan } from './useMacroplan'
-import { SAMPLE_PLAN } from '../data/sample'
+import { describe, it, expect, beforeEach } from "vitest"
+import { nextTick } from "vue"
+import { useMacroplan } from "./useMacroplan"
+import { SAMPLE_PLAN } from "../data/sample"
 
-const LIB_KEY = 'macroplan:library'
-const LEGACY_KEY = 'macroplan:source'
+const LIB_KEY = "macroplan:library"
+const LEGACY_KEY = "macroplan:source"
 
 beforeEach(() => localStorage.clear())
 
-describe('useMacroplan — load & migration', () => {
-  it('seeds one sample plan when storage is empty, and persists it immediately', () => {
+describe("useMacroplan — load & migration", () => {
+  it("seeds one sample plan when storage is empty, and persists it immediately", () => {
     const m = useMacroplan()
     expect(m.plans.value).toHaveLength(1)
     expect(m.activeId.value).toBe(m.plans.value[0].id)
@@ -286,59 +292,59 @@ describe('useMacroplan — load & migration', () => {
     expect(localStorage.getItem(LIB_KEY)).toBeTruthy() // survives a reload
   })
 
-  it('migrates a legacy single-source store into a one-plan library and drops the legacy key', () => {
+  it("migrates a legacy single-source store into a one-plan library and drops the legacy key", () => {
     localStorage.setItem(LEGACY_KEY, SAMPLE_PLAN)
     const m = useMacroplan()
     expect(m.plans.value).toHaveLength(1)
     expect(m.source.value).toBe(SAMPLE_PLAN)
-    expect(m.plans.value[0].name).toBe('Q3 — Checkout revamp')
+    expect(m.plans.value[0].name).toBe("Q3 — Checkout revamp")
     expect(localStorage.getItem(LEGACY_KEY)).toBeNull()
   })
 
-  it('falls back to a fresh sample when the library JSON is corrupt', () => {
-    localStorage.setItem(LIB_KEY, '{ not valid json')
+  it("falls back to a fresh sample when the library JSON is corrupt", () => {
+    localStorage.setItem(LIB_KEY, "{ not valid json")
     const m = useMacroplan()
     expect(m.plans.value).toHaveLength(1)
     expect(m.source.value).toBe(SAMPLE_PLAN)
   })
 
-  it('repairs a stale activeId instead of discarding the stored plans', () => {
+  it("repairs a stale activeId instead of discarding the stored plans", () => {
     localStorage.setItem(
       LIB_KEY,
       JSON.stringify({
         version: 1,
-        activeId: 'gone',
-        plans: [{ id: 'x', name: 'Kept', source: SAMPLE_PLAN }],
+        activeId: "gone",
+        plans: [{ id: "x", name: "Kept", source: SAMPLE_PLAN }],
       }),
     )
     const m = useMacroplan()
-    expect(m.activeId.value).toBe('x')
-    expect(m.plans.value[0].name).toBe('Kept')
+    expect(m.activeId.value).toBe("x")
+    expect(m.plans.value[0].name).toBe("Kept")
   })
 })
 
-describe('useMacroplan — active plan binding', () => {
-  it('refreshes the cached name when the active source parses to a title, and autosaves', async () => {
+describe("useMacroplan — active plan binding", () => {
+  it("refreshes the cached name when the active source parses to a title, and autosaves", async () => {
     const m = useMacroplan()
     m.source.value = 'title = "Renamed"\n'
     await nextTick()
-    expect(m.plans.value[0].name).toBe('Renamed')
-    expect(localStorage.getItem(LIB_KEY)).toContain('Renamed')
+    expect(m.plans.value[0].name).toBe("Renamed")
+    expect(localStorage.getItem(LIB_KEY)).toContain("Renamed")
   })
 
-  it('keeps the last-good name and render when the source is mid-edit/broken', async () => {
+  it("keeps the last-good name and render when the source is mid-edit/broken", async () => {
     const m = useMacroplan()
     const goodPlan = m.plan.value
     m.source.value = 'title = "Renamed"\n[[feature]]\n' // feature missing name → parse error
     await nextTick()
     expect(m.error.value).toBeTruthy()
     expect(m.plan.value).toBe(goodPlan) // last-good render retained
-    expect(m.plans.value[0].name).toBe('Q3 — Checkout revamp') // name unchanged
+    expect(m.plans.value[0].name).toBe("Q3 — Checkout revamp") // name unchanged
   })
 })
 
-describe('useMacroplan — CRUD', () => {
-  it('newPlan appends a sample plan and activates it', () => {
+describe("useMacroplan — CRUD", () => {
+  it("newPlan appends a sample plan and activates it", () => {
     const m = useMacroplan()
     const firstId = m.activeId.value
     m.newPlan()
@@ -347,7 +353,7 @@ describe('useMacroplan — CRUD', () => {
     expect(m.source.value).toBe(SAMPLE_PLAN)
   })
 
-  it('deletePlan removes the active plan and re-points to the preceding one', () => {
+  it("deletePlan removes the active plan and re-points to the preceding one", () => {
     const m = useMacroplan()
     m.newPlan() // 2 plans; second is active
     const [first, second] = m.plans.value
@@ -356,14 +362,14 @@ describe('useMacroplan — CRUD', () => {
     expect(m.activeId.value).toBe(first.id)
   })
 
-  it('deleting the last plan re-seeds a fresh sample (never empty)', () => {
+  it("deleting the last plan re-seeds a fresh sample (never empty)", () => {
     const m = useMacroplan()
     m.deletePlan(m.activeId.value)
     expect(m.plans.value).toHaveLength(1)
     expect(m.source.value).toBe(SAMPLE_PLAN)
   })
 
-  it('switching to a broken plan shows its own empty state, not the previous render', async () => {
+  it("switching to a broken plan shows its own empty state, not the previous render", async () => {
     const m = useMacroplan()
     const aId = m.activeId.value
     m.newPlan()
@@ -391,14 +397,14 @@ Expected: FAIL — the new API (`plans`, `activeId`, `newPlan`, etc.) does not e
 Replace the entire file with:
 
 ```ts
-import { ref, computed, watch } from 'vue'
-import { parseMacroplan } from '../model/parse'
-import { buildPlan } from '../model/plan'
-import type { Plan } from '../model/types'
-import { SAMPLE_PLAN } from '../data/sample'
+import { ref, computed, watch } from "vue"
+import { parseMacroplan } from "../model/parse"
+import { buildPlan } from "../model/plan"
+import type { Plan } from "../model/types"
+import { SAMPLE_PLAN } from "../data/sample"
 
-const STORAGE_KEY = 'macroplan:library'
-const LEGACY_KEY = 'macroplan:source'
+const STORAGE_KEY = "macroplan:library"
+const LEGACY_KEY = "macroplan:source"
 
 export interface StoredPlan {
   id: string
@@ -423,7 +429,7 @@ function titleOf(source: string): string | null {
 }
 
 function newStoredPlan(source: string): StoredPlan {
-  return { id: crypto.randomUUID(), name: titleOf(source) ?? 'Untitled', source }
+  return { id: crypto.randomUUID(), name: titleOf(source) ?? "Untitled", source }
 }
 
 function save(lib: Library): void {
@@ -578,10 +584,12 @@ git commit -m "feat(model): make useMacroplan own a library of named plans"
 Replace the static title block with the switcher, add a trash button + confirm modal that deletes the active plan, wire the `.toml` download, and remove the now-retired `resetToSample`.
 
 **Files:**
+
 - Modify (rewrite): `src/App.vue`
 - Modify: `src/composables/useMacroplan.ts` (delete the temporary `resetToSample`)
 
 **Interfaces:**
+
 - Consumes: `useMacroplan` (`source`, `plan`, `error`, `plans`, `activeId`, `selectPlan`, `newPlan`, `deletePlan`), `PlanSwitcher`, `sourceFilename` + `downloadSource`, `exportFilename` + `usePngExport`.
 
 - [ ] **Step 1: Remove the temporary `resetToSample` from `useMacroplan.ts`**
@@ -601,13 +609,13 @@ Replace the entire file with:
 
 ```vue
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import { useMacroplan } from './composables/useMacroplan'
-import { usePngExport, exportFilename } from './composables/usePngExport'
-import { sourceFilename, downloadSource } from './composables/useSourceExport'
-import PlanEditor from './components/PlanEditor.vue'
-import MacroplanGrid from './components/MacroplanGrid.vue'
-import PlanSwitcher from './components/PlanSwitcher.vue'
+import { ref, computed } from "vue"
+import { useMacroplan } from "./composables/useMacroplan"
+import { usePngExport, exportFilename } from "./composables/usePngExport"
+import { sourceFilename, downloadSource } from "./composables/useSourceExport"
+import PlanEditor from "./components/PlanEditor.vue"
+import MacroplanGrid from "./components/MacroplanGrid.vue"
+import PlanSwitcher from "./components/PlanSwitcher.vue"
 
 const { source, plan, error, plans, activeId, selectPlan, newPlan, deletePlan } = useMacroplan()
 const { busy, toast, copyPng, downloadPng } = usePngExport()
@@ -616,7 +624,7 @@ const exportRoot = ref<HTMLElement>()
 const confirmingDelete = ref(false)
 
 const activeName = computed(
-  () => plans.value.find((p) => p.id === activeId.value)?.name ?? 'Untitled',
+  () => plans.value.find((p) => p.id === activeId.value)?.name ?? "Untitled",
 )
 
 function downloadToml() {
@@ -659,7 +667,11 @@ function confirmDelete() {
       >
         Download
       </button>
-      <button class="btn btn-ghost btn-sm" title="Delete this plan" @click="confirmingDelete = true">
+      <button
+        class="btn btn-ghost btn-sm"
+        title="Delete this plan"
+        @click="confirmingDelete = true"
+      >
         🗑
       </button>
     </header>
@@ -737,6 +749,7 @@ Expected: PASS — all suites (existing + the new filename, switcher, and librar
 - [ ] **Step 5: Manual smoke check in the dev server**
 
 Run: `pnpm dev` and open the app, then verify each:
+
 1. The header shows the current plan name in a dropdown (no more static title).
 2. Open the dropdown → **＋ New plan** adds a plan and switches to it (editor shows the sample again).
 3. Edit the `title` in the source → the dropdown label updates to the new title.
@@ -762,6 +775,7 @@ git commit -m "feat(ui): wire the plan switcher, delete confirm and .toml downlo
 Record the new `Library` term in the ubiquitous language and flip the README now that the library exists.
 
 **Files:**
+
 - Modify: `CONTEXT.md`
 - Modify: `README.md`
 
@@ -770,7 +784,6 @@ Record the new `Library` term in the ubiquitous language and flip the README now
 In the `## Language` section, immediately after the **Now line** entry (the block ending `_Avoid_: today marker, cursor`) and before `## Symbols`, insert:
 
 ```markdown
-
 **Library**:
 The collection of saved **Macroplans** held in the browser's localStorage — the live store. Always holds at least one Macroplan; durability rests on exporting a Macroplan's `.toml` (per ADR-0002), not on the Library itself. Carries no status of its own.
 _Avoid_: workspace, project, file list
@@ -829,6 +842,7 @@ git commit -m "docs: record the Library term and mark the plans library as built
 ## Self-Review
 
 **1. Spec coverage**
+
 - Multiple named plans in localStorage → Task 3 (`Library` model).
 - Header dropdown switcher → Task 2 (`PlanSwitcher`) + Task 4 (wiring).
 - New plan from sample → Task 3 (`newPlan`) + Task 4.

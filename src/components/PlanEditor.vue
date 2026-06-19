@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, nextTick } from 'vue'
-import type { HighlighterCore } from 'shiki/core'
-import { getCompletions, type CompletionContext } from './completion'
+import { ref, computed, onMounted, nextTick } from "vue"
+import type { HighlighterCore } from "shiki/core"
+import { getCompletions, type CompletionContext } from "./completion"
 
 const props = defineProps<{ modelValue: string; error: string | null }>()
-const emit = defineEmits<{ 'update:modelValue': [value: string] }>()
+const emit = defineEmits<{ "update:modelValue": [value: string] }>()
 
 const textarea = ref<HTMLTextAreaElement>()
 const backdrop = ref<HTMLElement>()
@@ -25,10 +25,10 @@ onMounted(async () => {
   // Lazy-load Shiki as its own chunk so it stays out of the initial bundle.
   // Fine-grained: only the TOML grammar + one light theme, JS engine (no WASM).
   const [core, engine, toml, theme] = await Promise.all([
-    import('shiki/core'),
-    import('shiki/engine/javascript'),
-    import('shiki/langs/toml.mjs'),
-    import('shiki/themes/github-light.mjs'),
+    import("shiki/core"),
+    import("shiki/engine/javascript"),
+    import("shiki/langs/toml.mjs"),
+    import("shiki/themes/github-light.mjs"),
   ])
   highlighter.value = await core.createHighlighterCore({
     themes: [theme.default],
@@ -41,11 +41,11 @@ function measure() {
   const el = textarea.value
   if (!el) return
   const cs = getComputedStyle(el)
-  const ctx = document.createElement('canvas').getContext('2d')!
+  const ctx = document.createElement("canvas").getContext("2d")!
   ctx.font = `${cs.fontSize} ${cs.fontFamily}`
   const lh = parseFloat(cs.lineHeight) // px value in every modern browser
   metrics = {
-    charWidth: ctx.measureText('0000000000').width / 10,
+    charWidth: ctx.measureText("0000000000").width / 10,
     lineHeight: Number.isNaN(lh) || lh < 4 ? parseFloat(cs.fontSize) * 1.6 : lh,
     padLeft: parseFloat(cs.paddingLeft),
     padTop: parseFloat(cs.paddingTop),
@@ -66,10 +66,10 @@ function position() {
   const el = textarea.value
   if (!el) return
   const before = el.value.slice(0, el.selectionStart)
-  const lineIndex = before.split('\n').length - 1
-  const line = before.slice(before.lastIndexOf('\n') + 1)
+  const lineIndex = before.split("\n").length - 1
+  const line = before.slice(before.lastIndexOf("\n") + 1)
   let col = 0
-  for (const ch of line) col = ch === '\t' ? col + (2 - (col % 2)) : col + 1
+  for (const ch of line) col = ch === "\t" ? col + (2 - (col % 2)) : col + 1
   popup.value = {
     left: metrics.padLeft + col * metrics.charWidth - el.scrollLeft,
     top: metrics.padTop + (lineIndex + 1) * metrics.lineHeight - el.scrollTop,
@@ -83,7 +83,7 @@ function accept(i: number) {
   const item = ctx.items[i]
   const caret = ctx.from + item.insert.length
   completion.value = null
-  emit('update:modelValue', el.value.slice(0, ctx.from) + item.insert + el.value.slice(ctx.to))
+  emit("update:modelValue", el.value.slice(0, ctx.from) + item.insert + el.value.slice(ctx.to))
   nextTick(() => {
     el.setSelectionRange(caret, caret)
     el.focus()
@@ -92,7 +92,7 @@ function accept(i: number) {
 }
 
 function onKeydown(e: KeyboardEvent) {
-  if (e.key !== 'Escape') justEscaped = false
+  if (e.key !== "Escape") justEscaped = false
   const ctx = completion.value
   if (!ctx) return
   const move = (delta: number) => {
@@ -100,32 +100,32 @@ function onKeydown(e: KeyboardEvent) {
     selected.value = (selected.value + delta + ctx.items.length) % ctx.items.length
   }
   // Ctrl+N / Ctrl+P mirror ArrowDown / ArrowUp (readline-style navigation).
-  if (e.ctrlKey && (e.key === 'n' || e.key === 'p')) {
-    move(e.key === 'n' ? 1 : -1)
+  if (e.ctrlKey && (e.key === "n" || e.key === "p")) {
+    move(e.key === "n" ? 1 : -1)
     return
   }
   switch (e.key) {
-    case 'ArrowDown':
+    case "ArrowDown":
       move(1)
       break
-    case 'ArrowUp':
+    case "ArrowUp":
       move(-1)
       break
-    case 'Enter':
-    case 'Tab':
+    case "Enter":
+    case "Tab":
       e.preventDefault()
       accept(selected.value)
       break
-    case 'Escape':
+    case "Escape":
       e.preventDefault()
       completion.value = null
       justEscaped = true
       break
     // Caret jumps would leave the popup stranded at a stale spot — close it.
-    case 'ArrowLeft':
-    case 'ArrowRight':
-    case 'Home':
-    case 'End':
+    case "ArrowLeft":
+    case "ArrowRight":
+    case "Home":
+    case "End":
       completion.value = null
       break
   }
@@ -133,18 +133,18 @@ function onKeydown(e: KeyboardEvent) {
 
 const highlighted = computed(() => {
   // a trailing newline needs a trailing char so the last backdrop line keeps height
-  const code = props.modelValue.endsWith('\n') ? props.modelValue + ' ' : props.modelValue
+  const code = props.modelValue.endsWith("\n") ? props.modelValue + " " : props.modelValue
   const hl = highlighter.value
   if (!hl) return `<pre class="shiki"><code>${escapeHtml(code)}</code></pre>`
-  return hl.codeToHtml(code, { lang: 'toml', theme: 'github-light' })
+  return hl.codeToHtml(code, { lang: "toml", theme: "github-light" })
 })
 
 function escapeHtml(s: string): string {
-  return s.replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[c]!)
+  return s.replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" })[c]!)
 }
 
 function onInput(e: Event) {
-  emit('update:modelValue', (e.target as HTMLTextAreaElement).value)
+  emit("update:modelValue", (e.target as HTMLTextAreaElement).value)
   refresh()
 }
 

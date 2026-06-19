@@ -1,6 +1,6 @@
 # Macroplan
 
-A **Macroplan** is a week-by-week plan that keeps the receipts: what we promised to deliver, when it actually landed, and what the gap taught us — a simpler cousin of a Gantt chart whose purpose is not just scheduling but *learning*.
+A **Macroplan** is a week-by-week plan that keeps the receipts: what we promised to deliver, when it actually landed, and what the gap taught us — a simpler cousin of a Gantt chart whose purpose is not just scheduling but _learning_.
 
 ## Language
 
@@ -33,7 +33,7 @@ A free-text takeaway captured against a Feature once it is delivered — what th
 _Avoid_: retro note, lesson, postmortem
 
 **Status**:
-A Feature's *current* delivery confidence (a snapshot, overwritten each review): **on-track** (all good), **at-risk** (in trouble but we have a plan), **off-track** (in trouble and we have no plan). May carry a comment. Applies only while in-flight; once delivered, the **Learning** takes over and the Status is dropped. An overdue Feature (past its latest estimate, not delivered) is expressed through an at-risk/off-track Status, not a dedicated symbol.
+A Feature's _current_ delivery confidence (a snapshot, overwritten each review): **on-track** (all good), **at-risk** (in trouble but we have a plan), **off-track** (in trouble and we have no plan). May carry a comment. Applies only while in-flight; once delivered, the **Learning** takes over and the Status is dropped. An overdue Feature (past its latest estimate, not delivered) is expressed through an at-risk/off-track Status, not a dedicated symbol.
 _Avoid_: health, RAG, risk
 
 **Week**:

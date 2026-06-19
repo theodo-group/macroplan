@@ -1,11 +1,11 @@
-import { describe, it, expect } from 'vitest'
-import { parseMacroplan, PlanParseError } from './parse'
-import { buildPlan } from './plan'
-import { mondayOf, weekRange } from './week'
-import type { FeatureRow } from './types'
-import { SAMPLE_PLAN } from '../data/sample'
+import { describe, it, expect } from "vitest"
+import { parseMacroplan, PlanParseError } from "./parse"
+import { buildPlan } from "./plan"
+import { mondayOf, weekRange } from "./week"
+import type { FeatureRow } from "./types"
+import { SAMPLE_PLAN } from "../data/sample"
 
-const TODAY = '2026-06-17' // a Wednesday → week of Mon 2026-06-15
+const TODAY = "2026-06-17" // a Wednesday → week of Mon 2026-06-15
 
 function rowOf(source: string, name: string): FeatureRow {
   const plan = buildPlan(parseMacroplan(source), TODAY)
@@ -14,168 +14,168 @@ function rowOf(source: string, name: string): FeatureRow {
   return row
 }
 
-describe('week math', () => {
-  it('snaps any day to its Monday', () => {
-    expect(mondayOf('2026-06-17')).toBe('2026-06-15') // Wed → Mon
-    expect(mondayOf('2026-06-15')).toBe('2026-06-15') // Mon → Mon
-    expect(mondayOf('2026-06-21')).toBe('2026-06-15') // Sun → that week's Mon
-    expect(mondayOf('2026-06-01')).toBe('2026-06-01') // Mon
+describe("week math", () => {
+  it("snaps any day to its Monday", () => {
+    expect(mondayOf("2026-06-17")).toBe("2026-06-15") // Wed → Mon
+    expect(mondayOf("2026-06-15")).toBe("2026-06-15") // Mon → Mon
+    expect(mondayOf("2026-06-21")).toBe("2026-06-15") // Sun → that week's Mon
+    expect(mondayOf("2026-06-01")).toBe("2026-06-01") // Mon
   })
 
-  it('builds an inclusive contiguous Monday range', () => {
-    expect(weekRange('2026-06-01', '2026-06-22')).toEqual([
-      '2026-06-01',
-      '2026-06-08',
-      '2026-06-15',
-      '2026-06-22',
+  it("builds an inclusive contiguous Monday range", () => {
+    expect(weekRange("2026-06-01", "2026-06-22")).toEqual([
+      "2026-06-01",
+      "2026-06-08",
+      "2026-06-15",
+      "2026-06-22",
     ])
   })
 })
 
-describe('F2 — on-time / late classification (ADR-0001)', () => {
+describe("F2 — on-time / late classification (ADR-0001)", () => {
   const base = (extra: string) =>
     `[[feature]]\nname = "X"\nstart = 2026-06-01\noriginal = 2026-06-15\n${extra}\n`
 
-  it('delivered on the Original Estimate week → ◉, no ◯, onTime true', () => {
-    const r = rowOf(base('delivered = 2026-06-15'), 'X')
+  it("delivered on the Original Estimate week → ◉, no ◯, onTime true", () => {
+    const r = rowOf(base("delivered = 2026-06-15"), "X")
     expect(r.onTime).toBe(true)
-    expect(r.markers.map((m) => m.kind)).toEqual(['delivered-on-time'])
-    expect(r.markers[0].week).toBe('2026-06-15')
+    expect(r.markers.map((m) => m.kind)).toEqual(["delivered-on-time"])
+    expect(r.markers[0].week).toBe("2026-06-15")
   })
 
-  it('delivered earlier than the Original Estimate → still on-time ◉, bar ends at delivery', () => {
-    const r = rowOf(base('delivered = 2026-06-08'), 'X')
+  it("delivered earlier than the Original Estimate → still on-time ◉, bar ends at delivery", () => {
+    const r = rowOf(base("delivered = 2026-06-08"), "X")
     expect(r.onTime).toBe(true)
-    expect(r.markers.map((m) => m.kind)).toEqual(['delivered-on-time'])
-    expect(r.markers[0].week).toBe('2026-06-08')
-    expect(r.barEndWeek).toBe('2026-06-08') // no ◯ dangling in the future
+    expect(r.markers.map((m) => m.kind)).toEqual(["delivered-on-time"])
+    expect(r.markers[0].week).toBe("2026-06-08")
+    expect(r.barEndWeek).toBe("2026-06-08") // no ◯ dangling in the future
   })
 
-  it('delivered after the Original Estimate → ▲ late, ◯ baseline preserved', () => {
-    const r = rowOf(base('delivered = 2026-06-29'), 'X')
+  it("delivered after the Original Estimate → ▲ late, ◯ baseline preserved", () => {
+    const r = rowOf(base("delivered = 2026-06-29"), "X")
     expect(r.onTime).toBe(false)
     const kinds = r.markers.map((m) => `${m.kind}@${m.week}`).sort()
-    expect(kinds).toEqual(['delivered-late@2026-06-29', 'original@2026-06-15'])
-    expect(r.barEndWeek).toBe('2026-06-29')
+    expect(kinds).toEqual(["delivered-late@2026-06-29", "original@2026-06-15"])
+    expect(r.barEndWeek).toBe("2026-06-29")
   })
 
-  it('late delivery with multiple slips keeps ◯ + every △ + ▲ (judged vs original, not re-estimate)', () => {
-    const r = rowOf(
-      base('reestimates = [2026-06-29, 2026-07-13]\ndelivered = 2026-07-20'),
-      'X',
-    )
+  it("late delivery with multiple slips keeps ◯ + every △ + ▲ (judged vs original, not re-estimate)", () => {
+    const r = rowOf(base("reestimates = [2026-06-29, 2026-07-13]\ndelivered = 2026-07-20"), "X")
     expect(r.onTime).toBe(false) // 07-20 > original 06-15, regardless of the 07-13 re-estimate
     expect(r.slipCount).toBe(2)
     const byKind = r.markers.reduce<Record<string, string[]>>((acc, m) => {
       ;(acc[m.kind] ??= []).push(m.week)
       return acc
     }, {})
-    expect(byKind.original).toEqual(['2026-06-15'])
-    expect(byKind.reestimate?.sort()).toEqual(['2026-06-29', '2026-07-13'])
-    expect(byKind['delivered-late']).toEqual(['2026-07-20'])
+    expect(byKind.original).toEqual(["2026-06-15"])
+    expect(byKind.reestimate?.sort()).toEqual(["2026-06-29", "2026-07-13"])
+    expect(byKind["delivered-late"]).toEqual(["2026-07-20"])
   })
 
-  it('in-flight (undelivered) → ◯ only, onTime null, bar ends at the furthest estimate', () => {
-    const r = rowOf(base('reestimates = [2026-06-29]\nstatus = "off-track"'), 'X')
+  it("in-flight (undelivered) → ◯ only, onTime null, bar ends at the furthest estimate", () => {
+    const r = rowOf(base('reestimates = [2026-06-29]\nstatus = "off-track"'), "X")
     expect(r.onTime).toBeNull()
     expect(r.delivered).toBe(false)
-    expect(r.status).toBe('off-track')
-    expect(r.barEndWeek).toBe('2026-06-29') // furthest open estimate
-    expect(r.markers.some((m) => m.kind === 'original')).toBe(true)
+    expect(r.status).toBe("off-track")
+    expect(r.barEndWeek).toBe("2026-06-29") // furthest open estimate
+    expect(r.markers.some((m) => m.kind === "original")).toBe(true)
   })
 })
 
-describe('bar extent relative to now', () => {
+describe("bar extent relative to now", () => {
   const feat = (extra: string) =>
     `[[feature]]\nname = "X"\nstart = 2026-06-01\noriginal = 2026-06-08\n${extra}\n`
 
-  it('extends an overdue undelivered bar to the now week, keeping ◯ at the estimate', () => {
+  it("extends an overdue undelivered bar to the now week, keeping ◯ at the estimate", () => {
     // original 2026-06-08 is before now (week of 2026-06-15) and undelivered → overdue
-    const r = rowOf(feat('status = "off-track"'), 'X')
+    const r = rowOf(feat('status = "off-track"'), "X")
     expect(r.delivered).toBe(false)
-    expect(r.barEndWeek).toBe('2026-06-15') // runs up to now, past the 06-08 estimate
-    expect(r.markers.find((m) => m.kind === 'original')?.week).toBe('2026-06-08')
+    expect(r.barEndWeek).toBe("2026-06-15") // runs up to now, past the 06-08 estimate
+    expect(r.markers.find((m) => m.kind === "original")?.week).toBe("2026-06-08")
   })
 
-  it('does not extend a delivered bar past its delivery, even when now is later', () => {
-    const r = rowOf(feat('delivered = 2026-06-08'), 'X')
-    expect(r.barEndWeek).toBe('2026-06-08') // ends at delivery, not at the now week
+  it("does not extend a delivered bar past its delivery, even when now is later", () => {
+    const r = rowOf(feat("delivered = 2026-06-08"), "X")
+    expect(r.barEndWeek).toBe("2026-06-08") // ends at delivery, not at the now week
   })
 
-  it('ends an on-track undelivered bar at the future estimate (no extension back to now)', () => {
-    const r = rowOf('[[feature]]\nname="X"\nstart=2026-06-22\noriginal=2026-07-06\n', 'X')
-    expect(r.barEndWeek).toBe('2026-07-06')
+  it("ends an on-track undelivered bar at the future estimate (no extension back to now)", () => {
+    const r = rowOf('[[feature]]\nname="X"\nstart=2026-06-22\noriginal=2026-07-06\n', "X")
+    expect(r.barEndWeek).toBe("2026-07-06")
   })
 })
 
-describe('plan derivation', () => {
-  it('derives a contiguous week range and places the now line', () => {
+describe("plan derivation", () => {
+  it("derives a contiguous week range and places the now line", () => {
     const plan = buildPlan(parseMacroplan(SAMPLE_PLAN), TODAY)
-    expect(plan.weeks[0]).toBe('2026-05-25') // authored span start (lead-in before earliest Feature)
-    expect(plan.weeks.at(-1)).toBe('2026-08-03') // authored span end (trailing past last marker)
+    expect(plan.weeks[0]).toBe("2026-05-25") // authored span start (lead-in before earliest Feature)
+    expect(plan.weeks.at(-1)).toBe("2026-08-03") // authored span end (trailing past last marker)
     // contiguous, weekly
-    expect(plan.weeks).toContain('2026-06-29')
-    expect(plan.nowWeek).toBe('2026-06-15')
+    expect(plan.weeks).toContain("2026-06-29")
+    expect(plan.nowWeek).toBe("2026-06-15")
     expect(plan.nowInRange).toBe(true)
   })
 
-  it('flags a Milestone’s unmet required Features (undelivered or delivered after the milestone)', () => {
+  it("flags a Milestone’s unmet required Features (undelivered or delivered after the milestone)", () => {
     const plan = buildPlan(parseMacroplan(SAMPLE_PLAN), TODAY)
-    const mvp = plan.milestones.find((m) => m.name === 'MVP go-live')!
-    expect(mvp.week).toBe('2026-07-06')
+    const mvp = plan.milestones.find((m) => m.name === "MVP go-live")!
+    expect(mvp.week).toBe("2026-07-06")
     // Auth delivered 06-15 (met); Payments delivered 07-20 > 07-06 (unmet); Dashboard undelivered (unmet)
-    expect(mvp.unmet.sort()).toEqual(['Dashboard', 'Payments'])
+    expect(mvp.unmet.sort()).toEqual(["Dashboard", "Payments"])
   })
 })
 
-describe('authored plan span (start / end)', () => {
-  const body = '[[feature]]\nname="X"\nstart=2026-06-08\noriginal=2026-06-15\ndelivered=2026-06-15\n'
+describe("authored plan span (start / end)", () => {
+  const body =
+    '[[feature]]\nname="X"\nstart=2026-06-08\noriginal=2026-06-15\ndelivered=2026-06-15\n'
 
-  it('extends the range earlier to `start` and later to `end`', () => {
+  it("extends the range earlier to `start` and later to `end`", () => {
     const plan = buildPlan(parseMacroplan(`start = 2026-06-01\nend = 2026-06-29\n${body}`), TODAY)
-    expect(plan.weeks).toEqual(weekRange('2026-06-01', '2026-06-29'))
-    expect(plan.weeks[0]).toBe('2026-06-01') // before the earliest Feature week (06-08)
-    expect(plan.weeks.at(-1)).toBe('2026-06-29') // after the last marker (06-15)
+    expect(plan.weeks).toEqual(weekRange("2026-06-01", "2026-06-29"))
+    expect(plan.weeks[0]).toBe("2026-06-01") // before the earliest Feature week (06-08)
+    expect(plan.weeks.at(-1)).toBe("2026-06-29") // after the last marker (06-15)
   })
 
-  it('snaps authored bounds to their Monday', () => {
+  it("snaps authored bounds to their Monday", () => {
     const plan = buildPlan(parseMacroplan(`start = 2026-06-03\nend = 2026-06-24\n${body}`), TODAY)
-    expect(plan.weeks[0]).toBe('2026-06-01') // Wed 06-03 → Mon 06-01
-    expect(plan.weeks.at(-1)).toBe('2026-06-22') // Wed 06-24 → Mon 06-22
+    expect(plan.weeks[0]).toBe("2026-06-01") // Wed 06-03 → Mon 06-01
+    expect(plan.weeks.at(-1)).toBe("2026-06-22") // Wed 06-24 → Mon 06-22
   })
 
-  it('only extends — a marker outside the authored bounds is never clipped', () => {
+  it("only extends — a marker outside the authored bounds is never clipped", () => {
     // end 06-08 is before the Feature's 06-15 delivery → the range still includes it
     const plan = buildPlan(parseMacroplan(`start = 2026-06-08\nend = 2026-06-08\n${body}`), TODAY)
-    expect(plan.weeks[0]).toBe('2026-06-08')
-    expect(plan.weeks.at(-1)).toBe('2026-06-15')
+    expect(plan.weeks[0]).toBe("2026-06-08")
+    expect(plan.weeks.at(-1)).toBe("2026-06-15")
   })
 
-  it('renders an empty plan across the authored bounds when there are no Features', () => {
-    const plan = buildPlan(parseMacroplan('start = 2026-06-01\nend = 2026-06-22\n'), TODAY)
+  it("renders an empty plan across the authored bounds when there are no Features", () => {
+    const plan = buildPlan(parseMacroplan("start = 2026-06-01\nend = 2026-06-22\n"), TODAY)
     expect(plan.rows).toHaveLength(0)
-    expect(plan.weeks).toEqual(weekRange('2026-06-01', '2026-06-22'))
+    expect(plan.weeks).toEqual(weekRange("2026-06-01", "2026-06-22"))
   })
 
-  it('rejects a non-date span bound', () => {
-    expect(() => parseMacroplan('start = 123\n')).toThrow(/start/)
+  it("rejects a non-date span bound", () => {
+    expect(() => parseMacroplan("start = 123\n")).toThrow(/start/)
   })
 })
 
-describe('parse validation', () => {
-  it('rejects a feature missing its Original Estimate', () => {
+describe("parse validation", () => {
+  it("rejects a feature missing its Original Estimate", () => {
     expect(() => parseMacroplan('[[feature]]\nname = "A"\nstart = 2026-06-01\n')).toThrow(
       PlanParseError,
     )
   })
 
-  it('rejects an invalid status', () => {
+  it("rejects an invalid status", () => {
     expect(() =>
-      parseMacroplan('[[feature]]\nname="A"\nstart=2026-06-01\noriginal=2026-06-08\nstatus="blue"\n'),
+      parseMacroplan(
+        '[[feature]]\nname="A"\nstart=2026-06-01\noriginal=2026-06-08\nstatus="blue"\n',
+      ),
     ).toThrow(/status/)
   })
 
-  it('parses the bundled sample without error', () => {
+  it("parses the bundled sample without error", () => {
     const raw = parseMacroplan(SAMPLE_PLAN)
     expect(raw.features).toHaveLength(5)
     expect(raw.milestones).toHaveLength(3)

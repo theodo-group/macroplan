@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import { useMacroplan } from './composables/useMacroplan'
-import { usePngExport, exportFilename } from './composables/usePngExport'
-import { sourceFilename, downloadSource } from './composables/useSourceExport'
-import PlanEditor from './components/PlanEditor.vue'
-import MacroplanGrid from './components/MacroplanGrid.vue'
-import PlanSwitcher from './components/PlanSwitcher.vue'
+import { ref, computed } from "vue"
+import { useMacroplan } from "./composables/useMacroplan"
+import { usePngExport, exportFilename } from "./composables/usePngExport"
+import { sourceFilename, downloadSource } from "./composables/useSourceExport"
+import PlanEditor from "./components/PlanEditor.vue"
+import MacroplanGrid from "./components/MacroplanGrid.vue"
+import PlanSwitcher from "./components/PlanSwitcher.vue"
 
 const { source, plan, error, plans, activeId, selectPlan, newPlan, deletePlan } = useMacroplan()
 const { busy, toast, copyPng, downloadPng } = usePngExport()
@@ -14,7 +14,7 @@ const exportRoot = ref<HTMLElement>()
 const confirmingDelete = ref(false)
 
 const activeName = computed(
-  () => plans.value.find((p) => p.id === activeId.value)?.name ?? 'Untitled',
+  () => plans.value.find((p) => p.id === activeId.value)?.name ?? "Untitled",
 )
 
 function downloadToml() {

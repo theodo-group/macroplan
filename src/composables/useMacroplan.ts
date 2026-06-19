@@ -1,12 +1,12 @@
-import { ref, shallowRef, computed, watch } from 'vue'
-import * as v from 'valibot'
-import { parseMacroplan } from '../model/parse'
-import { buildPlan } from '../model/plan'
-import type { Plan } from '../model/types'
-import { SAMPLE_PLAN } from '../data/sample'
+import { ref, shallowRef, computed, watch } from "vue"
+import * as v from "valibot"
+import { parseMacroplan } from "../model/parse"
+import { buildPlan } from "../model/plan"
+import type { Plan } from "../model/types"
+import { SAMPLE_PLAN } from "../data/sample"
 
-const STORAGE_KEY = 'macroplan:library'
-const LEGACY_KEY = 'macroplan:source'
+const STORAGE_KEY = "macroplan:library"
+const LEGACY_KEY = "macroplan:source"
 
 const StoredPlanSchema = v.object({
   id: v.string(),
@@ -33,7 +33,7 @@ function titleOf(source: string): string | null {
 }
 
 function newStoredPlan(source: string): StoredPlan {
-  return { id: crypto.randomUUID(), name: titleOf(source) ?? 'Untitled', source }
+  return { id: crypto.randomUUID(), name: titleOf(source) ?? "Untitled", source }
 }
 
 function save(lib: Library): void {
@@ -145,7 +145,7 @@ export function useMacroplan() {
       // empty library — first run (loadLibrary) or deleting the last plan
       // (deletePlan) — and the ≥1-plan invariant keeps the library non-empty
       // here, so "+ New" never re-clones the sample over an existing library.
-      const p = newStoredPlan('')
+      const p = newStoredPlan("")
       lib.value.plans.push(p)
       switchTo(p.id)
     },

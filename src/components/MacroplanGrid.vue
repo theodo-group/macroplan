@@ -1,48 +1,48 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import type { Plan, FeatureRow, MarkerKind } from '../model/types'
-import { weekLabel, type WeekId } from '../model/week'
+import { computed } from "vue"
+import type { Plan, FeatureRow, MarkerKind } from "../model/types"
+import { weekLabel, type WeekId } from "../model/week"
 
 const props = defineProps<{ plan: Plan }>()
 
-type Tone = 'success' | 'warning' | 'error' | 'neutral'
+type Tone = "success" | "warning" | "error" | "neutral"
 
 const GLYPH: Record<MarkerKind, string> = {
-  original: '◯',
-  reestimate: '△',
-  'delivered-on-time': '◉',
-  'delivered-late': '▲',
+  original: "◯",
+  reestimate: "△",
+  "delivered-on-time": "◉",
+  "delivered-late": "▲",
 }
 const MARKER_CLASS: Record<MarkerKind, string> = {
-  original: 'text-base-content/50',
-  reestimate: 'text-warning',
-  'delivered-on-time': 'text-success',
-  'delivered-late': 'text-error',
+  original: "text-base-content/50",
+  reestimate: "text-warning",
+  "delivered-on-time": "text-success",
+  "delivered-late": "text-error",
 }
 // When two markers land on the same week, the higher rank owns the cell.
 const RANK: Record<MarkerKind, number> = {
-  'delivered-late': 3,
-  'delivered-on-time': 3,
+  "delivered-late": 3,
+  "delivered-on-time": 3,
   reestimate: 2,
   original: 1,
 }
 const TONE_TEXT: Record<Tone, string> = {
-  success: 'text-success',
-  warning: 'text-warning',
-  error: 'text-error',
-  neutral: 'text-primary',
+  success: "text-success",
+  warning: "text-warning",
+  error: "text-error",
+  neutral: "text-primary",
 }
 const TONE_BORDER: Record<Tone, string> = {
-  success: 'border-success',
-  warning: 'border-warning',
-  error: 'border-error',
-  neutral: 'border-primary',
+  success: "border-success",
+  warning: "border-warning",
+  error: "border-error",
+  neutral: "border-primary",
 }
 const TONE_DOT: Record<Tone, string> = {
-  success: 'bg-success',
-  warning: 'bg-warning',
-  error: 'bg-error',
-  neutral: 'bg-base-300',
+  success: "bg-success",
+  warning: "bg-warning",
+  error: "bg-error",
+  neutral: "bg-base-300",
 }
 
 // Layout constants (must match the CSS vars --name-w / --wk) for stacking math.
@@ -57,15 +57,15 @@ const gridStyle = computed(() => ({
 }))
 
 function tone(row: FeatureRow): Tone {
-  if (row.delivered) return row.onTime ? 'success' : 'error'
-  if (row.status === 'on-track') return 'success'
-  if (row.status === 'at-risk') return 'warning'
-  if (row.status === 'off-track') return 'error'
-  return 'neutral'
+  if (row.delivered) return row.onTime ? "success" : "error"
+  if (row.status === "on-track") return "success"
+  if (row.status === "at-risk") return "warning"
+  if (row.status === "off-track") return "error"
+  return "neutral"
 }
 
 function statusWord(row: FeatureRow): string {
-  return row.status ? row.status.replace('-', ' ') : 'in flight'
+  return row.status ? row.status.replace("-", " ") : "in flight"
 }
 
 function markerAt(row: FeatureRow, w: WeekId): MarkerKind | null {
@@ -79,7 +79,7 @@ function markerAt(row: FeatureRow, w: WeekId): MarkerKind | null {
 interface Cell {
   // how far the bar line runs within this cell: none, center→right,
   // left→center, or full width
-  line: 'none' | 'right' | 'left' | 'full'
+  line: "none" | "right" | "left" | "full"
   isStart: boolean
   glyph: string
   glyphCls: string
@@ -91,17 +91,17 @@ const matrix = computed<Cell[][]>(() =>
     weeks.value.map((w) => {
       const m = markerAt(row, w)
       const inBar = w >= row.startWeek && w <= row.barEndWeek
-      let line: Cell['line'] = 'none'
+      let line: Cell["line"] = "none"
       if (inBar) {
         const isStart = w === row.startWeek
         const isEnd = w === row.barEndWeek
-        line = isStart && isEnd ? 'none' : isStart ? 'right' : isEnd ? 'left' : 'full'
+        line = isStart && isEnd ? "none" : isStart ? "right" : isEnd ? "left" : "full"
       }
       return {
         line,
         isStart: inBar && w === row.startWeek,
-        glyph: m ? GLYPH[m] : '',
-        glyphCls: m ? MARKER_CLASS[m] : '',
+        glyph: m ? GLYPH[m] : "",
+        glyphCls: m ? MARKER_CLASS[m] : "",
       }
     }),
   ),
@@ -119,9 +119,9 @@ const cols = computed(() =>
 
 function colClass(i: number): string {
   const c = cols.value[i]
-  if (c.isNow) return 'col-now'
-  if (c.isMilestone) return 'col-ms'
-  return ''
+  if (c.isNow) return "col-now"
+  if (c.isMilestone) return "col-ms"
+  return ""
 }
 
 // Milestone label flags above the axis, greedily stacked onto extra rows so
@@ -134,13 +134,13 @@ const milestoneFlags = computed(() => {
   const rowEnd: number[] = [] // px x-extent of the last flag placed in each row
   return items.map((x) => {
     const startX = NAME_W + (x.col - 2) * WK
-    const text = `◆ ${x.m.name}` + (x.m.unmet.length ? ` · ${x.m.unmet.length} unmet` : '')
+    const text = `◆ ${x.m.name}` + (x.m.unmet.length ? ` · ${x.m.unmet.length} unmet` : "")
     const width = text.length * BAND_CHAR + 14
     let row = 0
     while (row < rowEnd.length && rowEnd[row] > startX - 6) row++
     rowEnd[row] = startX + width
     const title = x.m.unmet.length
-      ? `${x.m.name} — unmet: ${x.m.unmet.join(', ')}`
+      ? `${x.m.name} — unmet: ${x.m.unmet.join(", ")}`
       : `${x.m.name} — all required features met`
     return { name: x.m.name, unmet: x.m.unmet, col: x.col, row: row + 1, title }
   })
@@ -197,7 +197,9 @@ const bandStyle = computed(() => ({
         <div class="learncell">
           <template v-if="row.delivered">
             <span v-if="row.learning" class="note">{{ row.learning }}</span>
-            <span v-else class="muted">{{ row.onTime ? 'delivered on time' : 'delivered late' }}</span>
+            <span v-else class="muted">{{
+              row.onTime ? "delivered on time" : "delivered late"
+            }}</span>
           </template>
           <template v-else>
             <span class="dot" :class="TONE_DOT[tone(row)]"></span>

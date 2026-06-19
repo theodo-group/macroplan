@@ -21,41 +21,41 @@ export interface CompletionContext {
   items: Completion[]
 }
 
-type Block = 'plan' | 'feature' | 'milestone'
+type Block = "plan" | "feature" | "milestone"
 
 const PLAN_KEYS: Completion[] = [
-  { label: 'title', insert: 'title = ', detail: 'plan title' },
-  { label: 'start', insert: 'start = ', detail: 'left edge — date, optional' },
-  { label: 'end', insert: 'end = ', detail: 'right edge — date, optional' },
+  { label: "title", insert: "title = ", detail: "plan title" },
+  { label: "start", insert: "start = ", detail: "left edge — date, optional" },
+  { label: "end", insert: "end = ", detail: "right edge — date, optional" },
 ]
 
 const FEATURE_KEYS: Completion[] = [
-  { label: 'name', insert: 'name = ', detail: 'required' },
-  { label: 'start', insert: 'start = ', detail: 'date, required' },
-  { label: 'original', insert: 'original = ', detail: 'Original Estimate — date, required' },
-  { label: 'reestimates', insert: 'reestimates = ', detail: 'list of dates' },
-  { label: 'delivered', insert: 'delivered = ', detail: 'date' },
-  { label: 'status', insert: 'status = ', detail: 'on-track | at-risk | off-track' },
-  { label: 'learning', insert: 'learning = ', detail: 'string' },
-  { label: 'note', insert: 'note = ', detail: 'string' },
+  { label: "name", insert: "name = ", detail: "required" },
+  { label: "start", insert: "start = ", detail: "date, required" },
+  { label: "original", insert: "original = ", detail: "Original Estimate — date, required" },
+  { label: "reestimates", insert: "reestimates = ", detail: "list of dates" },
+  { label: "delivered", insert: "delivered = ", detail: "date" },
+  { label: "status", insert: "status = ", detail: "on-track | at-risk | off-track" },
+  { label: "learning", insert: "learning = ", detail: "string" },
+  { label: "note", insert: "note = ", detail: "string" },
 ]
 
 const MILESTONE_KEYS: Completion[] = [
-  { label: 'name', insert: 'name = ', detail: 'required' },
-  { label: 'week', insert: 'week = ', detail: 'date, required' },
-  { label: 'requires', insert: 'requires = ', detail: 'list of feature names' },
+  { label: "name", insert: "name = ", detail: "required" },
+  { label: "week", insert: "week = ", detail: "date, required" },
+  { label: "requires", insert: "requires = ", detail: "list of feature names" },
 ]
 
 const HEADERS: Completion[] = [
-  { label: '[[feature]]', insert: '[[feature]]', detail: 'new feature', filter: 'feature' },
-  { label: '[[milestone]]', insert: '[[milestone]]', detail: 'new milestone', filter: 'milestone' },
+  { label: "[[feature]]", insert: "[[feature]]", detail: "new feature", filter: "feature" },
+  { label: "[[milestone]]", insert: "[[milestone]]", detail: "new milestone", filter: "milestone" },
 ]
 
-const STATUSES = ['on-track', 'at-risk', 'off-track'] // keep in sync with parse.ts
+const STATUSES = ["on-track", "at-risk", "off-track"] // keep in sync with parse.ts
 
 /** What to suggest at `caret` in `source`, or null when nothing applies. */
 export function getCompletions(source: string, caret: number): CompletionContext | null {
-  const lineStart = source.lastIndexOf('\n', caret - 1) + 1
+  const lineStart = source.lastIndexOf("\n", caret - 1) + 1
   const linePrefix = source.slice(lineStart, caret)
 
   // ── value: status = "<here>" ──────────────────────────────────────────────
@@ -71,7 +71,7 @@ export function getCompletions(source: string, caret: number): CompletionContext
   const block = currentBlock(source, lineStart)
 
   // ── value: requires = [ "<here>" … ]  (milestones only) ───────────────────
-  if (block === 'milestone' && /requires\s*=\s*\[[^\]]*$/.test(linePrefix)) {
+  if (block === "milestone" && /requires\s*=\s*\[[^\]]*$/.test(linePrefix)) {
     const token = /("?)([^",[\]]*)$/.exec(linePrefix)!
     const items = filter(
       featureNames(source).map((n) => ({ label: n, insert: `"${n}"` })),
@@ -88,7 +88,7 @@ export function getCompletions(source: string, caret: number): CompletionContext
       return result(lineStart + indent.length, caret, filter(HEADERS, word))
     }
     const keys =
-      block === 'feature' ? FEATURE_KEYS : block === 'milestone' ? MILESTONE_KEYS : PLAN_KEYS
+      block === "feature" ? FEATURE_KEYS : block === "milestone" ? MILESTONE_KEYS : PLAN_KEYS
     const taken = presentKeys(source, lineStart, block)
     const items = filter([...keys.filter((k) => !taken.has(k.label)), ...HEADERS], word)
     return result(caret - word.length, caret, items)
@@ -111,7 +111,7 @@ const HEADER_RE = /^[ \t]*\[\[(feature|milestone)\]\]/gm
 
 /** The block owning the line at `lineStart` — 'plan' before the first header. */
 function currentBlock(source: string, lineStart: number): Block {
-  let block: Block = 'plan'
+  let block: Block = "plan"
   HEADER_RE.lastIndex = 0
   let m: RegExpExecArray | null
   while ((m = HEADER_RE.exec(source)) !== null && m.index < lineStart) {
@@ -129,7 +129,7 @@ function presentKeys(source: string, lineStart: number, block: Block): Set<strin
 
   let start = 0
   let end = source.length
-  if (block === 'plan') {
+  if (block === "plan") {
     end = headers[0] ?? source.length
   } else {
     for (let i = 0; i < headers.length; i++) {
@@ -151,11 +151,11 @@ function presentKeys(source: string, lineStart: number, block: Block): Set<strin
 function featureNames(source: string): string[] {
   const re = /^[ \t]*\[\[(feature|milestone)\]\]|^[ \t]*name\s*=\s*"([^"]*)"/gm
   const names = new Set<string>()
-  let block: Block = 'plan'
+  let block: Block = "plan"
   let m: RegExpExecArray | null
   while ((m = re.exec(source)) !== null) {
     if (m[1]) block = m[1] as Block
-    else if (m[2] && block === 'feature') names.add(m[2])
+    else if (m[2] && block === "feature") names.add(m[2])
   }
   return [...names]
 }

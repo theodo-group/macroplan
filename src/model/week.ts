@@ -10,14 +10,14 @@ export type WeekId = string // 'yyyy-mm-dd', always a Monday
  */
 export function toYmd(value: unknown): string {
   if (value instanceof Date) return value.toISOString().slice(0, 10)
-  if (typeof value === 'string') return value.slice(0, 10)
+  if (typeof value === "string") return value.slice(0, 10)
   throw new Error(`expected a date, got ${JSON.stringify(value)}`)
 }
 
 // Anchor at UTC noon so day-of-week / day arithmetic never crosses a DST or
 // timezone boundary.
 function utcNoon(ymd: string): Date {
-  const [y, m, d] = ymd.split('-').map(Number)
+  const [y, m, d] = ymd.split("-").map(Number)
   return new Date(Date.UTC(y, m - 1, d, 12))
 }
 
@@ -51,9 +51,9 @@ export function weekRange(start: WeekId, end: WeekId): WeekId[] {
 
 /** Short column label for a week, e.g. "Jun 15". */
 export function weekLabel(week: WeekId): string {
-  return utcNoon(week).toLocaleDateString('en-US', {
-    month: 'short',
-    day: '2-digit',
-    timeZone: 'UTC',
+  return utcNoon(week).toLocaleDateString("en-US", {
+    month: "short",
+    day: "2-digit",
+    timeZone: "UTC",
   })
 }

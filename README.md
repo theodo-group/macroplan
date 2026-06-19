@@ -1,6 +1,6 @@
 # Macroplan
 
-A week-by-week plan that keeps the receipts on what a team promised to deliver — a simpler cousin of a Gantt chart whose point is not just scheduling but learning from *how our estimates held up over time*.
+A week-by-week plan that keeps the receipts on what a team promised to deliver — a simpler cousin of a Gantt chart whose point is not just scheduling but learning from _how our estimates held up over time_.
 
 Each feature reads left-to-right as a story: where it started, what we first promised, every time it slipped, and when it actually shipped — judged honestly against the **first** estimate, never a moved goalpost.
 
@@ -30,9 +30,9 @@ Dashboard              ┣━━━━━◯                             🔴  n
 
 ## Documentation
 
-| Document | What it covers |
-|----------|----------------|
-| [CONTEXT.md](CONTEXT.md) | **Ubiquitous language** — the glossary: Macroplan, Feature, Original Estimate, Re-estimate, Delivery, Milestone, Week, Now line, Learning, Status, and the symbol legend |
-| [DESIGN.md](DESIGN.md) | **Goal-driven design (QFD)** — goals, functions, the Goal→Function→How→Component cascade, the House/Roof matrices + rendered House of Quality, critical performance budget, trade-offs, and watched tensions |
-| [docs/adr/0001-original-estimate-as-baseline.md](docs/adr/0001-original-estimate-as-baseline.md) | Why on-time/late is judged against the **Original Estimate**, never a re-estimate |
-| [docs/adr/0002-local-first-no-backend.md](docs/adr/0002-local-first-no-backend.md) | Why the app is **local-first with no backend**, and TOML is the portable source of truth |
+| Document                                                                                         | What it covers                                                                                                                                                                                               |
+| ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| [CONTEXT.md](CONTEXT.md)                                                                         | **Ubiquitous language** — the glossary: Macroplan, Feature, Original Estimate, Re-estimate, Delivery, Milestone, Week, Now line, Learning, Status, and the symbol legend                                     |
+| [DESIGN.md](DESIGN.md)                                                                           | **Goal-driven design (QFD)** — goals, functions, the Goal→Function→How→Component cascade, the House/Roof matrices + rendered House of Quality, critical performance budget, trade-offs, and watched tensions |
+| [docs/adr/0001-original-estimate-as-baseline.md](docs/adr/0001-original-estimate-as-baseline.md) | Why on-time/late is judged against the **Original Estimate**, never a re-estimate                                                                                                                            |
+| [docs/adr/0002-local-first-no-backend.md](docs/adr/0002-local-first-no-backend.md)               | Why the app is **local-first with no backend**, and TOML is the portable source of truth                                                                                                                     |

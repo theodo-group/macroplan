@@ -1,5 +1,5 @@
-import { mondayOf, weekRange, type WeekId } from './week'
-import type { RawPlan, RawFeature, Plan, FeatureRow, Marker, MilestoneLine } from './types'
+import { mondayOf, weekRange, type WeekId } from "./week"
+import type { RawPlan, RawFeature, Plan, FeatureRow, Marker, MilestoneLine } from "./types"
 
 /**
  * Derive the render-ready Plan from the raw model (component C2).
@@ -17,7 +17,7 @@ export function buildPlan(raw: RawPlan, today: Date | string = new Date()): Plan
       const row = rows.find((r) => r.name === name)
       if (!row) return true // references an unknown Feature → can't be met
       const delivery = row.markers.find(
-        (x) => x.kind === 'delivered-on-time' || x.kind === 'delivered-late',
+        (x) => x.kind === "delivered-on-time" || x.kind === "delivered-late",
       )
       return !delivery || delivery.week > week // undelivered, or delivered after the milestone
     })
@@ -56,14 +56,14 @@ function buildRow(f: RawFeature, nowWeek: WeekId): FeatureRow {
   const onTime = delivered ? deliveredWeek! <= originalWeek : null
 
   const markers: Marker[] = []
-  for (const re of f.reestimates) markers.push({ week: mondayOf(re), kind: 'reestimate' })
+  for (const re of f.reestimates) markers.push({ week: mondayOf(re), kind: "reestimate" })
   if (delivered) {
-    markers.push({ week: deliveredWeek!, kind: onTime ? 'delivered-on-time' : 'delivered-late' })
+    markers.push({ week: deliveredWeek!, kind: onTime ? "delivered-on-time" : "delivered-late" })
   }
   // The Original Estimate `◯` stands unless an on-time/early delivery already
   // occupies (or precedes) it — then the delivery marker speaks for it.
   if (!(delivered && onTime)) {
-    markers.push({ week: originalWeek, kind: 'original' })
+    markers.push({ week: originalWeek, kind: "original" })
   }
 
   const intrinsicEnd = [startWeek, ...markers.map((m) => m.week)].reduce((a, b) => (a > b ? a : b))

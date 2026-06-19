@@ -2,7 +2,7 @@
 
 **Date:** 2026-06-17
 **Status:** Approved (brainstorming) → ready for implementation plan
-**Realizes:** [ADR-0002](../../adr/0002-local-first-no-backend.md) — *"The live store is localStorage (an in-app library of named Macroplans); the `.toml` file is the portable source of truth, moved in and out via Import/Export."*
+**Realizes:** [ADR-0002](../../adr/0002-local-first-no-backend.md) — _"The live store is localStorage (an in-app library of named Macroplans); the `.toml` file is the portable source of truth, moved in and out via Import/Export."_
 
 ## Problem
 
@@ -13,6 +13,7 @@ This adds the library: keep several named Macroplans, switch between them, creat
 ## Scope
 
 **In:**
+
 - Multiple named Macroplans persisted in localStorage.
 - A header dropdown to switch the active plan.
 - Create a new plan (a blank page; the bundled sample only seeds a genuinely empty library).
@@ -21,8 +22,9 @@ This adds the library: keep several named Macroplans, switch between them, creat
 - Migration from the legacy single-key store.
 
 **Out (YAGNI for v1):**
-- Duplicate / clone a plan (fork via *New* + paste).
-- File-open `.toml` *import* — pasting a `.toml` file's contents into a new plan's editor already covers loading. Re-evaluate if it proves clumsy.
+
+- Duplicate / clone a plan (fork via _New_ + paste).
+- File-open `.toml` _import_ — pasting a `.toml` file's contents into a new plan's editor already covers loading. Re-evaluate if it proves clumsy.
 - Reordering, folders, search, tags.
 - Any backend or multi-device sync (explicitly rejected by ADR-0002).
 
@@ -46,11 +48,11 @@ macroplan:library  →  {
 }
 ```
 
-| Field | Meaning |
-|-------|---------|
-| `id` | Stable identity from `crypto.randomUUID()`. The switcher and `activeId` key off this, **never** the name — so a plan survives title edits and broken TOML. |
-| `name` | The **cached last-good title** for that plan. Lets the switcher label every plan without parsing all of their sources on every render — only the active plan is parsed live. |
-| `source` | The TOML string the editor binds to. |
+| Field    | Meaning                                                                                                                                                                      |
+| -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `id`     | Stable identity from `crypto.randomUUID()`. The switcher and `activeId` key off this, **never** the name — so a plan survives title edits and broken TOML.                   |
+| `name`   | The **cached last-good title** for that plan. Lets the switcher label every plan without parsing all of their sources on every render — only the active plan is parsed live. |
+| `source` | The TOML string the editor binds to.                                                                                                                                         |
 
 **Why a cached name and not a live-derived one:** only the active plan's source is parsed continuously (for the live render). Inactive plans show their last-good title from `name`. The active plan's `name` is refreshed whenever its source parses to a title; a transient parse error leaves the last-good `name` (and the last-good render) in place — same forgiving behavior as today's F3.
 
@@ -76,16 +78,16 @@ Holds `plans` and `activeId`; persists the whole library to `macroplan:library` 
 
 Exposes:
 
-| Member | Type | Notes |
-|--------|------|-------|
-| `source` | writable `Ref<string>` | Reads/writes the **active** plan's `source`. The editor's `v-model` binds here unchanged. Writing it refreshes the active plan's cached `name` when the new source parses to a title. |
-| `plan` | `ComputedRef<Plan \| null>` | Active plan's derived model, falling back to its `lastGood` (unchanged behavior). |
-| `error` | `ComputedRef<string \| null>` | Active plan's current parse error. |
-| `plans` | `ComputedRef<{ id, name }[]>` | For the switcher. |
-| `activeId` | `Ref<string>` | Current selection. |
-| `newPlan()` | → `void` | Append a **blank** plan and switch to it. The sample is reserved for a genuinely empty library (first run / delete-the-last), which the ≥1-plan invariant means `newPlan` never sees. |
-| `deletePlan(id)` | → `void` | Remove; if it was active, re-point `activeId` to the **preceding** plan in the list (or the new first plan if it was at index 0); if it was the last remaining plan, seed a fresh sample (the invariant). |
-| `selectPlan(id)` | → `void` | Switch the active plan and **reset `lastGood`** so a broken target never shows the previous plan's render. |
+| Member           | Type                          | Notes                                                                                                                                                                                                     |
+| ---------------- | ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `source`         | writable `Ref<string>`        | Reads/writes the **active** plan's `source`. The editor's `v-model` binds here unchanged. Writing it refreshes the active plan's cached `name` when the new source parses to a title.                     |
+| `plan`           | `ComputedRef<Plan \| null>`   | Active plan's derived model, falling back to its `lastGood` (unchanged behavior).                                                                                                                         |
+| `error`          | `ComputedRef<string \| null>` | Active plan's current parse error.                                                                                                                                                                        |
+| `plans`          | `ComputedRef<{ id, name }[]>` | For the switcher.                                                                                                                                                                                         |
+| `activeId`       | `Ref<string>`                 | Current selection.                                                                                                                                                                                        |
+| `newPlan()`      | → `void`                      | Append a **blank** plan and switch to it. The sample is reserved for a genuinely empty library (first run / delete-the-last), which the ≥1-plan invariant means `newPlan` never sees.                     |
+| `deletePlan(id)` | → `void`                      | Remove; if it was active, re-point `activeId` to the **preceding** plan in the list (or the new first plan if it was at index 0); if it was the last remaining plan, seed a fresh sample (the invariant). |
+| `selectPlan(id)` | → `void`                      | Switch the active plan and **reset `lastGood`** so a broken target never shows the previous plan's render.                                                                                                |
 
 `resetToSample` is **removed** — `newPlan()` (a blank page) replaces it.
 
@@ -133,6 +135,7 @@ toml   ─► downloadSource(source, sourceFilename(title)) ─► browser downl
 ## Testing (Vitest, matching the existing suite)
 
 **`useMacroplan` / library model:**
+
 - No storage → library seeds one sample plan, active.
 - Legacy `macroplan:source` present → migrates to a one-plan library (name = parsed title), legacy key removed.
 - Corrupt `macroplan:library` → seeds fresh sample (no throw).
@@ -143,15 +146,17 @@ toml   ─► downloadSource(source, sourceFilename(title)) ─► browser downl
 - `selectPlan` swaps `source`/`plan`/`error` and resets `lastGood` (broken target shows its own error, not the prior render).
 
 **Filename util:**
+
 - `sourceFilename(title)` slug mirrors the existing `exportFilename` test (e.g. `"Q3 Delivery"` → `macroplan-q3-delivery.toml`); empty/garbage title → `macroplan-plan.toml`.
 
 **Component (`@vue/test-utils`):**
+
 - `PlanSwitcher` renders the plan names, marks the active one, and emits `select` / `new` / `delete` / `download` on the right interactions.
 
 ## Docs to update (in the implementation plan)
 
 - **`CONTEXT.md`** — add the **Library** glossary entry above.
-- **`README.md`** — flip the *"Not yet built: a library …"* note now that it exists; the *How it works* localStorage bullet can mention named plans + `.toml` export.
+- **`README.md`** — flip the _"Not yet built: a library …"_ note now that it exists; the _How it works_ localStorage bullet can mention named plans + `.toml` export.
 
 ## Open questions
 

@@ -1,6 +1,6 @@
-import type { WeekId } from './week'
+import type { WeekId } from "./week"
 
-export type StatusLevel = 'on-track' | 'at-risk' | 'off-track'
+export type StatusLevel = "on-track" | "at-risk" | "off-track"
 
 // ── Raw model: as authored, after TOML parse + validation, before derivation ──
 
@@ -32,10 +32,10 @@ export interface RawPlan {
 // ── Derived model: render-ready (C2 output) ──
 
 export type MarkerKind =
-  | 'original' // ◯ Original Estimate, not yet delivered
-  | 'reestimate' // △ a slip to a later week
-  | 'delivered-on-time' // ◉ delivered on/before the Original Estimate
-  | 'delivered-late' // ▲ delivered after the Original Estimate
+  | "original" // ◯ Original Estimate, not yet delivered
+  | "reestimate" // △ a slip to a later week
+  | "delivered-on-time" // ◉ delivered on/before the Original Estimate
+  | "delivered-late" // ▲ delivered after the Original Estimate
 
 export interface Marker {
   week: WeekId
