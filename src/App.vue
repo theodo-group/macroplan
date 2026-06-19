@@ -15,16 +15,16 @@ const confirmingDelete = ref(false)
 
 // Which panes are visible: the Source editor, the rendered Macroplan, or both.
 // Kept in the URL (?view=…) so a layout is shareable/bookmarkable, not persisted.
-type ViewMode = "source" | "split" | "view"
+type ViewMode = "source" | "split" | "macroplan"
 
 function readViewMode(): ViewMode {
   const v = new URLSearchParams(location.search).get("view")
-  return v === "source" || v === "view" ? v : "split"
+  return v === "source" || v === "macroplan" ? v : "split"
 }
 
 const mode = ref<ViewMode>(readViewMode())
-const showSource = computed(() => mode.value !== "view")
-const showView = computed(() => mode.value !== "source")
+const showSource = computed(() => mode.value !== "macroplan")
+const showMacroplan = computed(() => mode.value !== "source")
 
 // Reflect the choice in the URL without stacking a history entry per toggle.
 // "split" is the default, so drop the param to keep the URL clean.
@@ -83,17 +83,17 @@ function confirmDelete() {
         </button>
         <button
           class="btn btn-sm join-item"
-          :class="{ 'btn-active': mode === 'view' }"
-          :aria-pressed="mode === 'view'"
+          :class="{ 'btn-active': mode === 'macroplan' }"
+          :aria-pressed="mode === 'macroplan'"
           title="Show only the rendered Macroplan"
-          @click="mode = 'view'"
+          @click="mode = 'macroplan'"
         >
           Macroplan
         </button>
       </div>
       <button
         class="btn btn-ghost btn-sm"
-        :disabled="!plan || busy || !showView"
+        :disabled="!plan || busy || !showMacroplan"
         title="Copy the rendered plan to the clipboard as a PNG"
         @click="copyPng(exportRoot)"
       >
@@ -102,7 +102,7 @@ function confirmDelete() {
       </button>
       <button
         class="btn btn-ghost btn-sm"
-        :disabled="!plan || busy || !showView"
+        :disabled="!plan || busy || !showMacroplan"
         title="Download the rendered plan as a PNG"
         @click="downloadPng(exportRoot, exportFilename(plan?.title ?? ''))"
       >
@@ -123,7 +123,7 @@ function confirmDelete() {
         v-if="showSource"
         class="flex min-h-0 flex-col border-base-300"
         :class="
-          showView ? 'max-md:h-2/5 max-md:border-b md:w-1/3 md:max-w-md md:border-r' : 'flex-1'
+          showMacroplan ? 'max-md:h-2/5 max-md:border-b md:w-1/3 md:max-w-md md:border-r' : 'flex-1'
         "
       >
         <div class="px-4 py-2 text-xs font-semibold uppercase tracking-wide text-base-content/50">
@@ -132,7 +132,7 @@ function confirmDelete() {
         <PlanEditor v-model="source" :error="error" class="min-h-0 flex-1" />
       </section>
 
-      <section v-if="showView" class="min-h-0 flex-1 overflow-auto p-4">
+      <section v-if="showMacroplan" class="min-h-0 flex-1 overflow-auto p-4">
         <div v-if="plan" ref="exportRoot" class="export-root">
           <h2 class="mb-3 text-sm font-semibold text-base-content/70">{{ plan.title }}</h2>
           <MacroplanGrid :plan="plan" />
