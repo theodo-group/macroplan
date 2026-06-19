@@ -87,7 +87,9 @@ function accept(i: number) {
   nextTick(() => {
     el.setSelectionRange(caret, caret)
     el.focus()
-    refresh() // chain, e.g. `status = ` immediately offers the enum values
+    // Chain only after completing a key (insert ends `= `), so its values pop
+    // up next. A value or header is terminal — re-running would re-offer it.
+    if (item.insert.endsWith("= ")) refresh()
   })
 }
 
