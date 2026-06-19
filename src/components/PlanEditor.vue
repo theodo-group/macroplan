@@ -95,14 +95,21 @@ function onKeydown(e: KeyboardEvent) {
   if (e.key !== 'Escape') justEscaped = false
   const ctx = completion.value
   if (!ctx) return
+  const move = (delta: number) => {
+    e.preventDefault()
+    selected.value = (selected.value + delta + ctx.items.length) % ctx.items.length
+  }
+  // Ctrl+N / Ctrl+P mirror ArrowDown / ArrowUp (readline-style navigation).
+  if (e.ctrlKey && (e.key === 'n' || e.key === 'p')) {
+    move(e.key === 'n' ? 1 : -1)
+    return
+  }
   switch (e.key) {
     case 'ArrowDown':
-      e.preventDefault()
-      selected.value = (selected.value + 1) % ctx.items.length
+      move(1)
       break
     case 'ArrowUp':
-      e.preventDefault()
-      selected.value = (selected.value - 1 + ctx.items.length) % ctx.items.length
+      move(-1)
       break
     case 'Enter':
     case 'Tab':
