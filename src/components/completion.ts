@@ -53,8 +53,13 @@ const HEADERS: Completion[] = [
 
 const STATUSES = ["on-track", "at-risk", "off-track"] // keep in sync with parse.ts
 
-/** What to suggest at `caret` in `source`, or null when nothing applies. */
-export function getCompletions(source: string, caret: number): CompletionContext | null {
+/** What to suggest at `caret` in `source`, or null when nothing applies.
+ *  `today` (yyyy-mm-dd) seeds the date suggestions; injectable for tests. */
+export function getCompletions(
+  source: string,
+  caret: number,
+  today: string = todayYmd(),
+): CompletionContext | null {
   const lineStart = source.lastIndexOf("\n", caret - 1) + 1
   const linePrefix = source.slice(lineStart, caret)
 
@@ -66,6 +71,19 @@ export function getCompletions(source: string, caret: number): CompletionContext
       status[2],
     )
     return result(lineStart + status[1].length, caret, items)
+  }
+
+  // ── value: a date field — start = <here>, week = <here>, … ────────────────
+  // Only on an empty value, so it never fights a date already being typed
+  // (the chained refresh after picking the key surfaces these immediately).
+  if (/^\s*(?:start|end|original|delivered|week)\s*=\s*$/.test(linePrefix)) {
+    return result(caret, caret, dateItems(today))
+  }
+
+  // ── value: reestimates = [ … <here> ] — a date for a fresh array element ──
+  const inReestimates = /reestimates\s*=\s*\[[^\]]*$/.test(linePrefix)
+  if (inReestimates && /[[,]\s*$/.test(linePrefix)) {
+    return result(caret, caret, dateItems(today))
   }
 
   const block = currentBlock(source, lineStart)
@@ -99,6 +117,20 @@ export function getCompletions(source: string, caret: number): CompletionContext
 
 function result(from: number, to: number, items: Completion[]): CompletionContext | null {
   return items.length ? { from, to, items } : null
+}
+
+/** Today as yyyy-mm-dd (UTC, matching `toYmd`). Injectable keeps tests stable. */
+function todayYmd(): string {
+  return new Date().toISOString().slice(0, 10)
+}
+
+/** Date suggestions: the full date (easy to tweak the day/month in place) and
+ *  the current-year prefix (accept it, then type the month-day). */
+function dateItems(today: string): Completion[] {
+  return [
+    { label: today, insert: today, detail: "today" },
+    { label: today.slice(0, 5), insert: today.slice(0, 5), detail: "this year" },
+  ]
 }
 
 function filter(items: Completion[], word: string): Completion[] {

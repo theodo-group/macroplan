@@ -81,6 +81,50 @@ describe("completion context", () => {
   })
 })
 
+describe("date completion", () => {
+  const TODAY = "2026-06-19"
+  const datesAt = (marked: string) => {
+    const [source, caret] = atCaret(marked)
+    return getCompletions(source, caret, TODAY)
+  }
+
+  it("suggests today then the current-year prefix for an empty date value", () => {
+    const ctx = datesAt("[[feature]]\nstart = |")!
+    expect(ctx.items.map((i) => i.insert)).toEqual(["2026-06-19", "2026-"])
+    expect(ctx.items.map((i) => i.detail)).toEqual(["today", "this year"])
+  })
+
+  it("offers the same for plan dates and milestone weeks", () => {
+    expect(datesAt("end = |")!.items.map((i) => i.insert)).toEqual(["2026-06-19", "2026-"])
+    expect(datesAt("[[milestone]]\nweek = |")!.items.map((i) => i.insert)).toEqual([
+      "2026-06-19",
+      "2026-",
+    ])
+  })
+
+  it("inserts at the caret, replacing nothing", () => {
+    const [source, caret] = atCaret("[[feature]]\ndelivered = |")
+    const ctx = getCompletions(source, caret, TODAY)!
+    expect([ctx.from, ctx.to]).toEqual([caret, caret])
+  })
+
+  it("offers a date for a fresh element in a reestimates array", () => {
+    expect(datesAt("[[feature]]\nreestimates = [|")!.items.map((i) => i.insert)).toEqual([
+      "2026-06-19",
+      "2026-",
+    ])
+    expect(
+      datesAt("[[feature]]\nreestimates = [2026-01-01, |")!.items.map((i) => i.insert),
+    ).toEqual(["2026-06-19", "2026-"])
+  })
+
+  it("stays out of the way once a date is being typed", () => {
+    expect(datesAt("[[feature]]\nstart = 2|")).toBeNull()
+    expect(datesAt("[[feature]]\nstart = 2026-|")).toBeNull()
+    expect(datesAt("[[feature]]\nreestimates = [2026-0|")).toBeNull()
+  })
+})
+
 describe("completion replace range", () => {
   it("replaces the typed prefix, not the whole line", () => {
     const source = "[[feature]]\nst"
