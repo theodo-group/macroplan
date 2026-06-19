@@ -119,9 +119,12 @@ function result(from: number, to: number, items: Completion[]): CompletionContex
   return items.length ? { from, to, items } : null
 }
 
-/** Today as yyyy-mm-dd (UTC, matching `toYmd`). Injectable keeps tests stable. */
+/** Today as yyyy-mm-dd in the author's local zone — the calendar day they see,
+ *  not UTC's (which slips a day near midnight). Injectable keeps tests stable. */
 function todayYmd(): string {
-  return new Date().toISOString().slice(0, 10)
+  const d = new Date()
+  const pad = (n: number) => String(n).padStart(2, "0")
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
 }
 
 /** Date suggestions: the full date (easy to tweak the day/month in place) and
