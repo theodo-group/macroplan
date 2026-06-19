@@ -33,7 +33,7 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      # base must match the project-page path: https://<owner>.github.io/macroplan/
+      # Served from a custom domain at the root, so no --base override.
       - run: pnpm build
 
       - uses: actions/configure-pages@v5
