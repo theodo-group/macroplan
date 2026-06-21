@@ -6,122 +6,7 @@ Strength weights used in matrices: **9** strong, **3** medium, **1** weak, blank
 
 ---
 
-## 1. Goals — the WHATs
-
-| ID  | Goal                                                                                         | Weight | Source                           |
-| --- | -------------------------------------------------------------------------------------------- | :----: | -------------------------------- |
-| G1  | See at a glance where every Feature stands against its Original Estimate — the honest record |   10   | brief + [CONTEXT.md](CONTEXT.md) |
-| G2  | Turn estimation misses into captured Learnings for next time                                 |   8    | brief + [CONTEXT.md](CONTEXT.md) |
-| G4  | Author & update the whole plan fast during a weekly review                                   |   8    | brief                            |
-| G3  | Know whether external Milestones are at risk                                                 |   7    | brief + [CONTEXT.md](CONTEXT.md) |
-| G5  | Hand stakeholders a shareable read-only view                                                 |   5    | brief                            |
-
-## 2. Functions — the HOWs
-
-| ID  | Function                                                                         | Dir | Target (now)                                                                                                                                         |
-| --- | -------------------------------------------------------------------------------- | :-: | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| F1  | Render the plan legibly — bars, symbols, status colors, now-line, hover comments |  →  | reader IDs any Feature's state (on-time/late/overdue/slip-count) in ≤3s; Feature name + week axis never lost even when the plan exceeds the viewport |
-| F2  | Classify each Delivery on-time/late against the Original Estimate                |  →  | 100% correct per ADR-0001; markers land on the right Week                                                                                            |
-| F3  | Reflect a source edit in the rendered view                                       |  ↓  | ≤1s (live reload while authoring)                                                                                                                    |
-| F4  | Add / edit / remove a Feature with a single local edit                           |  ↓  | one contiguous block per op; no ripple edits — Weeks auto-layout, Milestones reference Features by name                                              |
-| F5  | Make it easy to attach an optional Learning to a delivered Feature               |  ↓  | one optional field; rendered in the trailing column when present, blank otherwise                                                                    |
-| F6  | Render a Milestone and flag its unmet required Features                          |  →  | vertical line at the correct Week; unmet required Features identifiable                                                                              |
-| F7  | Export the rendered plan as a shareable image (clipboard + download)             |  →  | one click → PNG on clipboard and/or downloaded; fully client-side, no backend                                                                        |
-
-## 3. Cascade — Goals → Functions → How → Components
-
-- **G1** See where every Feature stands vs. its Original Estimate — the honest record _W:10_
-  - **F1** Render the plan legibly (incl. at scale) _Dir→ reader IDs a state ≤3s; name + axis never lost_
-    - **How**: DOM rendering with CSS Grid (symbols are the visual vocabulary _inside_ cells; layout is real DOM) — chosen over a preformatted monospace text block, which can't pin a column on scroll. See T1.
-      - **Component**: **C3 Grid renderer** — bars (`┣━`), markers (`◯△◉▲`), status colors, Now line, sticky name column + sticky week-header row, hover tooltips for status notes
-- **G2** Turn estimation misses into captured Learnings _W:8_
-  - **F5** Make it easy to attach an optional Learning to a delivered Feature _Dir↓ one optional field_
-    - **How**: a single optional `learning` field on a Feature block; rendered in a persistent trailing column when present
-      - **Component**: C3 (trailing Learning column), C1 (TOML field)
-- **G4** Author & update the whole plan fast during a weekly review _W:8_
-  - **F4** Add / edit / remove a Feature with a single local edit _Dir↓ one block per op, no ripple_
-    - **How**: TOML `[[feature]]` / `[[milestone]]` blocks keyed by date literals; renderer derives Weeks & marker placement so edits never ripple. See T2.
-      - **Component**: **C1 TOML source + parser** (smol-toml) → Plan model
-  - **F3** Reflect a source edit in the view _Dir↓ ≤1s_
-    - **How**: in-app split editor, re-parse on every keystroke (instant); autosave to localStorage. Chosen over Vite-HMR-on-file (needs a running toolchain) and load-file-only (slow loop). See T3.
-      - **Component**: **C4 Split editor** (editor pane + Vue reactivity)
-- **G3** Know whether external Milestones are at risk _W:7_
-  - **F6** Render a Milestone and flag its unmet required Features _Dir→ correct Week; unmet identifiable_
-    - **How**: `[[milestone]]` references Features by name; renderer draws a vertical line at the milestone Week and marks which required Features are undelivered
-      - **Component**: C2 (membership + unmet computation), C3 (vertical line overlay)
-- **G5** Hand stakeholders a shareable read-only view _W:5_
-  - **F7** Export the rendered plan as a shareable image _Dir→ one click → PNG_
-    - **How**: client-side DOM-to-PNG (html-to-image) → clipboard + download. Chosen over hosting a URL, which has no data unless the source is also shipped (local-first tool). See T1, T4.
-      - **Component**: **C6 Image exporter**
-- **F2** Classify each Delivery on-time/late vs the Original Estimate _Dir→ 100% correct per ADR-0001_ (serves G1)
-  - **How**: pure derivation in the Plan model — compare Delivery Week to the Original Estimate Week; never to a Re-estimate
-    - **Component**: **C2 Plan model** — derives contiguous Monday Weeks, classifies markers, computes Milestone membership
-
-### Components
-
-| ID  | Component                                                                                                       | Realises           | ADR      |
-| --- | --------------------------------------------------------------------------------------------------------------- | ------------------ | -------- |
-| C1  | TOML source + parser (smol-toml) → Plan model                                                                   | F4, feeds F2       | ADR-0002 |
-| C2  | Plan model — Week derivation, on-time/late classification, Milestone membership                                 | F2, F6             | ADR-0001 |
-| C3  | Grid renderer (Vue + CSS Grid) — bars, symbols, colors, Now line, sticky panes, hover, trailing Learning column | F1, F5, F6         | —        |
-| C4  | Split editor — parse-on-keystroke, localStorage autosave                                                        | F3                 | ADR-0002 |
-| C5  | Plan library — named Macroplans in localStorage, switch/CRUD, Import/Export .toml                               | scope, persistence | ADR-0002 |
-| C6  | Image exporter (html-to-image) — PNG to clipboard + download                                                    | F7                 | —        |
-
-## 4. House — Goals × Functions
-
-Cells: link strength (9 strong / 3 medium / 1 weak / blank none). Σ = `Σ(weight × strength)`.
-
-|           | F1  | F2  | F3  | F4  | F5  | F6  | F7  |
-| --------- | :-: | :-: | :-: | :-: | :-: | :-: | :-: |
-| G1 (10)   |  9  |  9  |  1  |  1  |     |  1  |     |
-| G2 (8)    |  3  |     |     |     |  9  |     |     |
-| G4 (8)    |  1  |     |  9  |  9  |  3  |  1  |     |
-| G3 (7)    |  3  |  3  |     |     |     |  9  |     |
-| G5 (5)    |  3  |     |     |     |     |     |  9  |
-| **Σ**     | 158 | 111 | 82  | 82  | 96  | 81  | 45  |
-| **Rel %** | 24  | 17  | 13  | 13  | 15  | 12  |  7  |
-
-**Top engineering priorities:** **F1 (render, 24%)** and **F2 (classify, 17%)** carry the most goal-value — together they _are_ G1, the anchor goal, so the grid renderer and the Plan-model classifier deserve the most care. **F5 (15%)** ranks third despite a single goal because it is the _sole_ driver of G2 (weight 8) — under-investing in frictionless Learning capture silently abandons the learning goal. The authoring pair **F3/F4 (13% each)** matter as a unit. **F7 (7%)** is genuinely a nice-to-have; keep it cheap. (Note: this importance lens differs from §7's risk lens, where F2 ranks first as the hard correctness gate.)
-
-## 5. Roof — Function × Function tradeoffs
-
-`◎` strong reinforce · `○` mild reinforce · `×` mild conflict · `⊗` strong conflict.
-
-|        | F1  | F2  | F3  | F4  | F5  | F6  | F7  |
-| ------ | :-: | :-: | :-: | :-: | :-: | :-: | :-: |
-| **F1** |  —  |  ○  |  ×  |     |     |     |  ×  |
-| **F2** |     |  —  |     |  ○  |     |     |     |
-| **F3** |     |     |  —  |  ◎  |     |     |     |
-| **F4** |     |     |     |  —  |     |     |     |
-| **F5** |     |     |     |     |  —  |     |     |
-| **F6** |     |     |     |     |     |  —  |     |
-| **F7** |     |     |     |     |     |     |  —  |
-
-**Conflicts that actually shape the design:**
-
-- **F1 × F7 (×).** The richer F1's _hover-only_ content, the more an exported image (F7) loses. Mitigation: keep the status _color_ always-visible; only the note is hover-only. Owned by tension in §8.
-- **F1 × F3 (×).** A heavier render (sticky panes, many cells) can slow the ≤1s reflect loop. Mitigation in §7: debounce / parse only changed blocks.
-- **F3 ◎ F4.** Instant reflect + local ripple-free edits reinforce strongly — together they _are_ fast authoring (G4). Invest in them as a pair.
-- **F2 ○ F4.** TOML's explicit date literals feed reliable classification — structured source _helps_ correctness (this is why the earlier "terse-vs-robust" tension dissolved once we chose TOML over a DSL).
-
-## 6. Function → Component map
-
-Strength of each Component in realising each Function (9/3/1/blank). Component list and ADR anchors are in §3.
-
-|        | C1  | C2  | C3  | C4  | C5  | C6  |
-| ------ | :-: | :-: | :-: | :-: | :-: | :-: |
-| **F1** |     |  3  |  9  |     |     |     |
-| **F2** |  3  |  9  |     |     |     |     |
-| **F3** |  3  |     |     |  9  |     |     |
-| **F4** |  9  |     |     |  3  |     |     |
-| **F5** |  3  |     |  9  |     |     |     |
-| **F6** |     |  9  |  3  |     |     |     |
-| **F7** |     |     |  3  |     |     |  9  |
-
-**C3 (Grid renderer)** and **C2 (Plan model)** each anchor three functions — they're the load-bearing components and the most important to get right and test hard.
-
-### House of Quality (rendered)
+## House of Quality
 
 ```tikz
 % =====================================================================
@@ -142,7 +27,7 @@ Strength of each Component in realising each Function (9/3/1/blank). Component l
 \def\qfdWhatW{4.0}
 \def\qfdImpW{0.9}
 \def\qfdCmpW{3}
-\def\qfdHdrH{2.6}
+\def\qfdHdrH{3.5}
 \def\qfdBasementN{4}
 
 \def\qfdWhatsTitle{Customer needs}
@@ -410,7 +295,7 @@ Strength of each Component in realising each Function (9/3/1/blank). Component l
 
   % Basement: target / difficulty / abs / rel
   \foreach \c/\tgt/\diff/\abs/\rel in {%
-    1/{state $\leq$3s}/4/158/24,
+    1/{state $\leq$1s}/4/158/24,
     2/{100\%}/2/111/17,
     3/{$\leq$1s}/2/82/13,
     4/{1 block}/2/82/13,
@@ -428,12 +313,130 @@ Strength of each Component in realising each Function (9/3/1/blank). Component l
 
 Basement rows (top→bottom): **target · difficulty (1–5) · absolute weight · relative weight %**.
 
+---
+
+## 1. Goals — the WHATs
+
+| ID  | Goal                                                                                         | Weight | Source                           |
+| --- | -------------------------------------------------------------------------------------------- | :----: | -------------------------------- |
+| G1  | See at a glance where every Feature stands against its Original Estimate — the honest record |   10   | brief + [CONTEXT.md](CONTEXT.md) |
+| G2  | Turn estimation misses into captured Learnings for next time                                 |   8    | brief + [CONTEXT.md](CONTEXT.md) |
+| G4  | Author & update the whole plan fast during a weekly review                                   |   8    | brief                            |
+| G3  | Know whether external Milestones are at risk                                                 |   7    | brief + [CONTEXT.md](CONTEXT.md) |
+| G5  | Hand stakeholders a shareable read-only view                                                 |   5    | brief                            |
+
+## 2. Functions — the HOWs
+
+| ID  | Function                                                                         | Dir | Target (now)                                                                                                                                         |
+| --- | -------------------------------------------------------------------------------- | :-: | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| F1  | Render the plan legibly — bars, symbols, status colors, now-line, hover comments |  →  | reader IDs any Feature's state (on-time/late/overdue/slip-count) in ≤1s; Feature name + week axis never lost even when the plan exceeds the viewport |
+| F2  | Classify each Delivery on-time/late against the Original Estimate                |  →  | 100% correct per ADR-0001; markers land on the right Week                                                                                            |
+| F3  | Reflect a source edit in the rendered view                                       |  ↓  | ≤1s (live reload while authoring)                                                                                                                    |
+| F4  | Add / edit / remove a Feature with a single local edit                           |  ↓  | one contiguous block per op; no ripple edits — Weeks auto-layout, Milestones reference Features by name                                              |
+| F5  | Make it easy to attach an optional Learning to a delivered Feature               |  ↓  | one optional field; rendered in the trailing column when present, blank otherwise                                                                    |
+| F6  | Render a Milestone and flag its unmet required Features                          |  →  | vertical line at the correct Week; unmet required Features identifiable                                                                              |
+| F7  | Export the rendered plan as a shareable image (clipboard + download)             |  →  | one click → PNG on clipboard and/or downloaded; fully client-side, no backend                                                                        |
+
+## 3. Cascade — Goals → Functions → How → Components
+
+- **G1** See where every Feature stands vs. its Original Estimate — the honest record _W:10_
+  - **F1** Render the plan legibly (incl. at scale) _Dir→ reader IDs a state ≤1s; name + axis never lost_
+    - **How**: DOM rendering with CSS Grid (symbols are the visual vocabulary _inside_ cells; layout is real DOM) — chosen over a preformatted monospace text block, which can't pin a column on scroll. See T1.
+      - **Component**: **C3 Grid renderer** — bars (`┣━`), markers (`◯△◉▲`), status colors, Now line, sticky name column + sticky week-header row, hover tooltips for status notes
+- **G2** Turn estimation misses into captured Learnings _W:8_
+  - **F5** Make it easy to attach an optional Learning to a delivered Feature _Dir↓ one optional field_
+    - **How**: a single optional `learning` field on a Feature block; rendered in a persistent trailing column when present
+      - **Component**: C3 (trailing Learning column), C1 (TOML field)
+- **G4** Author & update the whole plan fast during a weekly review _W:8_
+  - **F4** Add / edit / remove a Feature with a single local edit _Dir↓ one block per op, no ripple_
+    - **How**: TOML `[[feature]]` / `[[milestone]]` blocks keyed by date literals; renderer derives Weeks & marker placement so edits never ripple. See T2.
+      - **Component**: **C1 TOML source + parser** (smol-toml) → Plan model
+  - **F3** Reflect a source edit in the view _Dir↓ ≤1s_
+    - **How**: in-app split editor, re-parse on every keystroke (instant); autosave to localStorage. Chosen over Vite-HMR-on-file (needs a running toolchain) and load-file-only (slow loop). See T3.
+      - **Component**: **C4 Split editor** (editor pane + Vue reactivity)
+- **G3** Know whether external Milestones are at risk _W:7_
+  - **F6** Render a Milestone and flag its unmet required Features _Dir→ correct Week; unmet identifiable_
+    - **How**: `[[milestone]]` references Features by name; renderer draws a vertical line at the milestone Week and marks which required Features are undelivered
+      - **Component**: C2 (membership + unmet computation), C3 (vertical line overlay)
+- **G5** Hand stakeholders a shareable read-only view _W:5_
+  - **F7** Export the rendered plan as a shareable image _Dir→ one click → PNG_
+    - **How**: client-side DOM-to-PNG (html-to-image) → clipboard + download. Chosen over hosting a URL, which has no data unless the source is also shipped (local-first tool). See T1, T4.
+      - **Component**: **C6 Image exporter**
+- **F2** Classify each Delivery on-time/late vs the Original Estimate _Dir→ 100% correct per ADR-0001_ (serves G1)
+  - **How**: pure derivation in the Plan model — compare Delivery Week to the Original Estimate Week; never to a Re-estimate
+    - **Component**: **C2 Plan model** — derives contiguous Monday Weeks, classifies markers, computes Milestone membership
+
+### Components
+
+| ID  | Component                                                                                                       | Realises           | ADR      |
+| --- | --------------------------------------------------------------------------------------------------------------- | ------------------ | -------- |
+| C1  | TOML source + parser (smol-toml) → Plan model                                                                   | F4, feeds F2       | ADR-0002 |
+| C2  | Plan model — Week derivation, on-time/late classification, Milestone membership                                 | F2, F6             | ADR-0001 |
+| C3  | Grid renderer (Vue + CSS Grid) — bars, symbols, colors, Now line, sticky panes, hover, trailing Learning column | F1, F5, F6         | —        |
+| C4  | Split editor — parse-on-keystroke, localStorage autosave                                                        | F3                 | ADR-0002 |
+| C5  | Plan library — named Macroplans in localStorage, switch/CRUD, Import/Export .toml                               | scope, persistence | ADR-0002 |
+| C6  | Image exporter (html-to-image) — PNG to clipboard + download                                                    | F7                 | —        |
+
+## 4. House — Goals × Functions
+
+Cells: link strength (9 strong / 3 medium / 1 weak / blank none). Σ = `Σ(weight × strength)`.
+
+|           | F1  | F2  | F3  | F4  | F5  | F6  | F7  |
+| --------- | :-: | :-: | :-: | :-: | :-: | :-: | :-: |
+| G1 (10)   |  9  |  9  |  1  |  1  |     |  1  |     |
+| G2 (8)    |  3  |     |     |     |  9  |     |     |
+| G4 (8)    |  1  |     |  9  |  9  |  3  |  1  |     |
+| G3 (7)    |  3  |  3  |     |     |     |  9  |     |
+| G5 (5)    |  3  |     |     |     |     |     |  9  |
+| **Σ**     | 158 | 111 | 82  | 82  | 96  | 81  | 45  |
+| **Rel %** | 24  | 17  | 13  | 13  | 15  | 12  |  7  |
+
+**Top engineering priorities:** **F1 (render, 24%)** and **F2 (classify, 17%)** carry the most goal-value — together they _are_ G1, the anchor goal, so the grid renderer and the Plan-model classifier deserve the most care. **F5 (15%)** ranks third despite a single goal because it is the _sole_ driver of G2 (weight 8) — under-investing in frictionless Learning capture silently abandons the learning goal. The authoring pair **F3/F4 (13% each)** matter as a unit. **F7 (7%)** is genuinely a nice-to-have; keep it cheap. (Note: this importance lens differs from §7's risk lens, where F2 ranks first as the hard correctness gate.)
+
+## 5. Roof — Function × Function tradeoffs
+
+`◎` strong reinforce · `○` mild reinforce · `×` mild conflict · `⊗` strong conflict.
+
+|        | F1  | F2  | F3  | F4  | F5  | F6  | F7  |
+| ------ | :-: | :-: | :-: | :-: | :-: | :-: | :-: |
+| **F1** |  —  |  ○  |  ×  |     |     |     |  ×  |
+| **F2** |     |  —  |     |  ○  |     |     |     |
+| **F3** |     |     |  —  |  ◎  |     |     |     |
+| **F4** |     |     |     |  —  |     |     |     |
+| **F5** |     |     |     |     |  —  |     |     |
+| **F6** |     |     |     |     |     |  —  |     |
+| **F7** |     |     |     |     |     |     |  —  |
+
+**Conflicts that actually shape the design:**
+
+- **F1 × F7 (×).** The richer F1's _hover-only_ content, the more an exported image (F7) loses. Mitigation: keep the status _color_ always-visible; only the note is hover-only. Owned by tension in §8.
+- **F1 × F3 (×).** A heavier render (sticky panes, many cells) can slow the ≤1s reflect loop. Mitigation in §7: debounce / parse only changed blocks.
+- **F3 ◎ F4.** Instant reflect + local ripple-free edits reinforce strongly — together they _are_ fast authoring (G4). Invest in them as a pair.
+- **F2 ○ F4.** TOML's explicit date literals feed reliable classification — structured source _helps_ correctness (this is why the earlier "terse-vs-robust" tension dissolved once we chose TOML over a DSL).
+
+## 6. Function → Component map
+
+Strength of each Component in realising each Function (9/3/1/blank). Component list and ADR anchors are in §3.
+
+|        | C1  | C2  | C3  | C4  | C5  | C6  |
+| ------ | :-: | :-: | :-: | :-: | :-: | :-: |
+| **F1** |     |  3  |  9  |     |     |     |
+| **F2** |  3  |  9  |     |     |     |     |
+| **F3** |  3  |     |     |  9  |     |     |
+| **F4** |  9  |     |     |  3  |     |     |
+| **F5** |  3  |     |  9  |     |     |     |
+| **F6** |     |  9  |  3  |     |     |     |
+| **F7** |     |     |  3  |     |     |  9  |
+
+**C3 (Grid renderer)** and **C2 (Plan model)** each anchor three functions — they're the load-bearing components and the most important to get right and test hard.
+
+
 ## 7. Critical performance budget
 
 | Rank | Function | Target                                            | Watched on                                                              | If we miss it                                                                                    |
 | ---- | -------- | ------------------------------------------------- | ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
 | 1    | F2       | 100% correct on-time/late vs Original Estimate    | unit tests over sample plans (incl. multi-slip, deliver-early, overdue) | classification is the product — block release; it's pure logic, so a failing test is a hard stop |
-| 2    | F1       | reader IDs a state ≤3s; legible past the viewport | manual review on a 30-feature / 26-week sample; check sticky panes      | drop hover-only data into always-visible cells; simplify symbol styling                          |
+| 2    | F1       | reader IDs a state ≤1s; legible past the viewport | manual review on a 30-feature / 26-week sample; check sticky panes      | drop hover-only data into always-visible cells; simplify symbol styling                          |
 | 3    | F3       | ≤1s edit→view                                     | eyeball on keystroke with a large plan                                  | debounce parse; parse only changed blocks                                                        |
 | 4    | F7       | one-click PNG, faithful to on-screen              | manual export of a real plan; diff against screen                       | fall back to download-only if clipboard API is flaky; document "what you see is what exports"    |
 
