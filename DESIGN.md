@@ -127,8 +127,26 @@ Strength of each Component in realising each Function (9/3/1/blank). Component l
 % =====================================================================
 % QFD "House of Quality" preamble
 % =====================================================================
+% Usage:
+%   \begin{document}
+%   \begin{qfdhouse}
+%     % WHATs at ({\qfdLeftEdge + 0.1}, {-\r + 0.5})
+%     % Importance at ({-\qfdImpW/2}, {-\r + 0.5})
+%     % HOWs rotated 90 at ({\c - 0.5}, 0.15)
+%     % Relations in cells with [qfdrel/S], [qfdrel/M], [qfdrel/W]
+%     % Roof correlations at (C-i-j)
+%     % Perception markers at ({\qfdNH + (s+0.5)*\qfdCmpW/6}, {-\r + 0.5})
+%     % Basement: target / difficulty / abs weight / rel weight, per HOW
+%   \end{qfdhouse}
+%   \end{document}
+%
+% NB: in node text, use $<$ / $>$ for less-than / greater-than under
+% OT1 encoding; bare < and > render as Spanish ¡ ¿.
+% =====================================================================
+
 \usetikzlibrary{arrows.meta, positioning, shapes.geometric, shapes.misc, calc, fit, backgrounds}
 
+% Toggles — flip before \begin{qfdhouse} to hide sections.
 \newif\ifqfdshowroof          \qfdshowrooftrue
 \newif\ifqfdshowbasement      \qfdshowbasementtrue
 \newif\ifqfdshowcompetitive   \qfdshowcompetitivetrue
@@ -136,27 +154,36 @@ Strength of each Component in realising each Function (9/3/1/blank). Component l
 \newif\ifqfdshowimportance    \qfdshowimportancetrue
 \newif\ifqfdshowcorrlegend    \qfdshowcorrlegendtrue
 \newif\ifqfdshowevallegend    \qfdshowevallegendtrue
+\newif\ifqfdshowtitle         \qfdshowtitletrue   % title block above the roof
 
-\def\qfdNW{5}
-\def\qfdNH{5}
-\def\qfdWhatW{4.0}
-\def\qfdImpW{0.9}
-\def\qfdCmpW{3}
-\def\qfdHdrH{2.6}
-\def\qfdBasementN{4}
+% Dimensions — override before \begin{qfdhouse} to resize.
+\def\qfdNW{5}           % number of WHATs (rows)
+\def\qfdNH{5}           % number of HOWs (columns)
+\def\qfdWhatW{4.0}      % width of WHATs column
+\def\qfdImpW{0.9}       % width of importance column
+\def\qfdCmpW{3}         % width of perception zone
+\def\qfdHdrH{2.6}       % height of column-titles band
+\def\qfdBasementN{4}    % number of basement rows
 
+% Titles & labels — override before \begin{qfdhouse}.
 \def\qfdWhatsTitle{Customer needs}
 \def\qfdImpTitle{Imp.\ \%}
 \def\qfdPerceptionTitle{Comparative evaluation}
 \def\qfdPoorLabel{poor}
 \def\qfdExcellentLabel{excellent}
-\def\qfdAltOneLabel{Our product}
+\def\qfdAltOneLabel{Our product}    % highlighted in legend
 \def\qfdAltTwoLabel{Competitor A}
 \def\qfdAltThreeLabel{Competitor B}
 \def\qfdRelTitle{Relation}
 \def\qfdCorrTitle{Correlation}
 \def\qfdEvalTitle{Evaluation}
 
+% Title block above the roof — set both to name the house. Leave
+% \qfdProjectTitle empty (default) to draw no title at all.
+\def\qfdProjectTitle{}  % project / feature name (large, bold)
+\def\qfdConcept{}       % concept in one sentence; \textbf{} the keywords
+
+% Styles.
 \tikzset{
   qfdthin/.style ={line width=0.35pt},
   qfdmed/.style  ={line width=0.7pt},
@@ -170,6 +197,7 @@ Strength of each Component in realising each Function (9/3/1/blank). Component l
   qfdrel/S/.style={qfdstrong},
   qfdrel/M/.style={qfdmod},
   qfdrel/W/.style={qfdweak},
+  % Three perception-zone alternatives. Index 1 is emphasised.
   qfdalt1mk/.style={circle, draw, fill=black,
                     minimum size=6pt, inner sep=0pt, line width=1pt},
   qfdalt1ln/.style={line width=1.2pt},
@@ -182,6 +210,7 @@ Strength of each Component in realising each Function (9/3/1/blank). Component l
   qfdalt3ln/.style={line width=0.7pt, dotted},
 }
 
+% --- Grid lines for every zone. ---
 \newcommand{\qfdDrawGrid}{%
   \foreach \c in {1,...,\qfdNHm} \draw[qfdthin] (\c, 0) -- (\c, -\qfdNW);
   \foreach \r in {1,...,\qfdNWm} \draw[qfdthin] (0, -\r) -- (\qfdNH, -\r);
@@ -203,6 +232,7 @@ Strength of each Component in realising each Function (9/3/1/blank). Component l
   \fi
 }
 
+% --- Roof: diagonal grid + named coordinates (C-i-j) for correlations. ---
 \newcommand{\qfdDrawRoof}{%
   \ifqfdshowroof
     \foreach \k in {1,...,\qfdNHm} {%
@@ -227,6 +257,7 @@ Strength of each Component in realising each Function (9/3/1/blank). Component l
   \fi
 }
 
+% --- Perception scale 0..5 + poor/excellent endpoints + zone title. ---
 \newcommand{\qfdDrawScale}{%
   \ifqfdshowcompetitive
     \foreach \tk in {0,1,2,3,4,5} {%
@@ -242,6 +273,7 @@ Strength of each Component in realising each Function (9/3/1/blank). Component l
   \fi
 }
 
+% --- Importance title (left) and WHATs title (header band). ---
 \newcommand{\qfdDrawZoneTitles}{%
   \ifqfdshowimportance
     \node[rotate=90, anchor=west, font=\footnotesize\bfseries]
@@ -252,6 +284,25 @@ Strength of each Component in realising each Function (9/3/1/blank). Component l
            {\ifqfdshowroof \qfdHdrH/2 \else 0.6 \fi}) {\qfdWhatsTitle};
 }
 
+% --- Title + concept subtitle, centred above the roof apex. ---
+\newcommand{\qfdDrawTitle}{%
+  \ifqfdshowtitle
+    \ifx\qfdProjectTitle\empty\else
+      \pgfmathsetmacro{\qfdTitleX}{\qfdNH/2}
+      \pgfmathsetmacro{\qfdTitleY}{\ifqfdshowroof \qfdApexY \else \qfdHdrH \fi + 0.9}
+      \pgfmathsetmacro{\qfdSubW}{\qfdNH + 2}    % pre-computed (braces don't do arithmetic)
+      \node[anchor=south, font=\large\bfseries, align=center]
+           at (\qfdTitleX, \qfdTitleY) {\qfdProjectTitle};
+      \ifx\qfdConcept\empty\else
+        \node[anchor=north, font=\footnotesize\itshape, align=center,
+              text width=\qfdSubW cm]
+             at (\qfdTitleX, {\qfdTitleY - 0.1}) {\qfdConcept};
+      \fi
+    \fi
+  \fi
+}
+
+% --- Outer frames around each zone. ---
 \newcommand{\qfdDrawFrames}{%
   \begin{scope}[qfdmed]
     \draw (\qfdLeftEdge, 0) rectangle (\qfdNH, -\qfdNW);
@@ -266,6 +317,7 @@ Strength of each Component in realising each Function (9/3/1/blank). Component l
   \end{scope}
 }
 
+% --- Legend on the right (Relations / Correlations / Evaluation). ---
 \newcommand{\qfdDrawLegend}{%
   \ifqfdshowlegend
     \pgfmathsetmacro{\qfdLegX}{%
@@ -278,6 +330,7 @@ Strength of each Component in realising each Function (9/3/1/blank). Component l
     \begin{scope}[shift={(\qfdLegX, \qfdLegY)}]
       \draw[qfdmed, rounded corners=2pt]
         (-0.15, 0.4) rectangle (4.5, \qfdLegBottom);
+      % Relations
       \node[anchor=west, font=\footnotesize\bfseries] at (0, 0.1)
         {\qfdRelTitle};
       \draw[qfdthin] (0, -0.15) -- (4.35, -0.15);
@@ -287,6 +340,7 @@ Strength of each Component in realising each Function (9/3/1/blank). Component l
         \node[anchor=west] at (0.5, -0.95) {Medium (3)};
       \node[qfdweak]   at (0.22, -1.4)  {};
         \node[anchor=west] at (0.5, -1.4)  {Weak (1)};
+      % Correlations (roof)
       \ifqfdshowroof \ifqfdshowcorrlegend
         \node[anchor=west, font=\footnotesize\bfseries] at (0, -2.10)
           {\qfdCorrTitle};
@@ -296,6 +350,7 @@ Strength of each Component in realising each Function (9/3/1/blank). Component l
         \node[anchor=west] at (0, -3.40) {{$-$\phantom{$-$}}\quad negative};
         \node[anchor=west] at (0, -3.75) {{$-\!-$}\quad very negative};
       \fi \fi
+      % Evaluation (3 alternatives)
       \ifqfdshowcompetitive \ifqfdshowevallegend
         \pgfmathsetmacro{\qfdEvalTop}{%
           -2.10 \ifqfdshowroof\ifqfdshowcorrlegend - 2.55 \fi\fi}
@@ -321,6 +376,7 @@ Strength of each Component in realising each Function (9/3/1/blank). Component l
   \fi
 }
 
+% --- The environment users wrap their content in. ---
 \newenvironment{qfdhouse}{%
   \begin{tikzpicture}[x=1cm, y=1cm, font=\scriptsize,
                       line cap=round, line join=round]
@@ -336,12 +392,12 @@ Strength of each Component in realising each Function (9/3/1/blank). Component l
   \qfdDrawRoof
   \qfdDrawScale
   \qfdDrawZoneTitles
+  \qfdDrawTitle
 }{%
   \qfdDrawFrames
   \qfdDrawLegend
   \end{tikzpicture}%
 }
-
 % --- Macroplan house: 5 WHATs, 7 HOWs, no competitor zone ---
 \def\qfdNW{5}
 \def\qfdNH{7}
